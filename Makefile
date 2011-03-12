@@ -4,8 +4,10 @@
 # Prof.: Yudith Cardinale
 # Proyecto 2: Comunicación entre procesos
 # Grupo 26
-# Autores:	Victor De Ponte, 05-38087
-#	   	Isaac Lopez,	 07-41120
+# Autores: Victor De Ponte, 05-38087
+#	       Isaac Lopez, 07-41120
+# Archivo: Makefile
+
 
 EXE1 = UsoDisco
 EXE2 = job
