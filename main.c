@@ -36,8 +36,18 @@
 #include "main.h"
 
 int main (int argc, char **argv) {
-  printf(USO);
-  
+  //  printf(USO);
+  PilaString *superpila = newPilaString();
+  imprimePilaString(superpila);
+
+  pushPilaString(superpila, "camioneta");
+  pushPilaString(superpila, "yepeto");
+  pushPilaString(superpila, "arlequin");
+  pushPilaString(superpila, "riptusempra");
+  imprimePilaString(superpila);
+
+  cleanPila(superpila);
+  imprimePilaString(superpila);
   return 0;
 }
 
