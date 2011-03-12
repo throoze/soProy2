@@ -12,11 +12,14 @@
 EXE1 = UsoDisco
 EXE2 = job
 
-LIBS = almacenamiento.h
-LIBO = almacenamiento.o
+LIBS = almacenamiento.h misc.h
+LIBO = almacenamiento.o misc.o
+
+LIBSJ = almacenamiento.h
+LIBOJ = almacenamiento.o
 
 OBJ1 = main.o ${LIBO}
-OBJ2 = job.o ${LIBO}
+OBJ2 = job.o ${LIBOJ}
 
 
 
@@ -34,11 +37,14 @@ ${EXE2}: ${OBJ2}
 main.o: main.c main.h ${LIBS}
 	gcc ${CFLAGS} -c main.c
 
+job.o: job.c job.h ${LIBSJ}
+	gcc ${CFLAGS} -c job.c
+
+misc.o: misc.c misc.h
+	gcc ${CFLAGS} -c misc.c
+
 almacenamiento.o: almacenamiento.c almacenamiento.h
 	gcc ${CFLAGS} -c almacenamiento.c
-
-job.o: job.c job.h ${LIBS}
-	gcc ${CFLAGS} -c job.c
 
 clean:
 	rm *.o ${EXE1} ${EXE2}
