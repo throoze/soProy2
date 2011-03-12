@@ -47,7 +47,7 @@ almacenamiento.o: almacenamiento.c almacenamiento.h
 	gcc ${CFLAGS} -c almacenamiento.c
 
 clean:
-	rm *.o ${EXE1} ${EXE2}
+	rm $(ls|grep ~$) *.o ${EXE1} ${EXE2}
 
 check-syntax:
 	gcc -o nul -Wall -S ${CHK_SOURCES}
