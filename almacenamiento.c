@@ -14,7 +14,6 @@
 #include <errno.h>
 #define FALSE 0
 #define TRUE 1
-#define TAMAX 10
 #endif
 
 /*INICIO Funciones y Procedimientos referentes al tipo ListaInt*/
