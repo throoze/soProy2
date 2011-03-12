@@ -105,6 +105,7 @@ CajitaInt *newCajitaInt() {
   CajitaInt *nueva = (CajitaInt *) malloc(sizeof(CajitaInt));
   if (nueva != NULL) {
     nueva->sig = nueva->ant = NULL;
+    nueva->pos = 0;
     return nueva;
   } else {
     fprintf(stderr, "newCajitaInt: Error al hacer la reserva de memoria!!!\n");
@@ -124,8 +125,6 @@ ListaInt *newListaInt() {
   }
 }
 
-
-
 int add(ListaInt *list, int elem) {
   CajitaInt *nueva = newCajitaInt();
   nueva->data = elem;
@@ -134,8 +133,10 @@ int add(ListaInt *list, int elem) {
     nueva->ant = list->tail;
     nueva->sig = NULL;
     list->tail = nueva;
+    nueva->pos = nueva->ant->pos + 1;
   } else {
     list->head = list->tail = nueva;
+    nueva->pos = 0;
   }
   list->size++;
   nueva = NULL;
@@ -170,6 +171,20 @@ void delete(ListaInt *list, int elem){
     aux = aux->sig;
   }
   return;
+}
+
+void get_li(ListaInt *list, int posi, int *ans){
+  CajitaInt *aux = lista.head;
+  while (aux->pos != posi && aux && aux->sig) {
+    aux = aux->sig;
+  }
+  if (aux) {
+    if (aux->pos == posi) {
+      *ans = aux->data;
+    } else {
+      ans = NULL;
+    }
+  }
 }
 
 int isIn(ListaInt *list, int elem){

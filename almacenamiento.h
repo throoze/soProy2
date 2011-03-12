@@ -99,6 +99,7 @@ typedef struct cajitaInt CajitaInt;
 
 struct cajitaInt {
   int data;
+  int pos;
   CajitaInt *sig,*ant;
 };
 
@@ -144,6 +145,17 @@ int add(ListaInt *list, int elem);
  * elem: elemento a eliminar de la Lista.
  */
 void delete(ListaInt *list,  int elem);
+
+
+/**
+ * Devuelve el elemento en la posición pos.
+ * retorna en la variable 'ans' el elemento almacenado en la posición 'posi'.
+ * de no existir un elemento en esa posicion, asigna NULL a 'ans'.
+ * list: lista a consultar.
+ * posi: posición del elemento solicitado.
+ * ans: apuntador a la salida de esta funcion.
+ */
+void get_li(ListaInt *list, int posi, int *ans);
 
 /**
  * Dice si un elemento 'elem' está actualmente o no en la Lista '*list'.
