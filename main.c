@@ -61,7 +61,7 @@
 
 #include "main.h"
 
-void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir, int *out){
+void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,char **startDirName, int *out){
   if (strcmp(argv[*i],"-h") == 0) {
     if (argc == 2) {
       printf(USO);
@@ -97,6 +97,8 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir, i
 	printf(USO);
 	exit(1);
       }
+      *startDirName = (char *) malloc(sizeof(argv[*i+1]));
+      *startDirName = argv[*i+1];
       *i = *i + 1;
     } else {
       fprintf(stderr,"UsoDisco:\nERROR: Se esperaba un argumento despues de la opcion '-d'.\n");
@@ -123,27 +125,52 @@ int main (int argc, char **argv) {
   }
 
   /* Valores por default */
-  unsigned long nc = 1; // Nivel de concurrencia
-  DIR *startDir;        // Directorio inicial
-  if ( (startDir = opendir(".")) == NULL) {
+  unsigned long nc = 1;     // Nivel de concurrencia
+  DIR *startDir;            // Directorio inicial
+  char *startDirName = ".";
+  if ( (startDir = opendir(startDirName)) == NULL) {
     perror("UsoDisco:\nERROR: Problema abriendo el directorio \".\" (directorio por defecto)\n\t");
     printf(USO);
     exit(1);
   }
-  int out = 1;          // Archivo de salida (stdout)
+  int out = 1;              // Archivo de salida (stdout)
 
   if (argc != 1) {
     int i;
     for (i = 1; i < argc; i++){
-      procArg(argc,argv,&i,&nc,&startDir,&out);
+      procArg(argc,argv,&i,&nc,&startDir,&startDirName,&out);
     }
   }
   /* Fin del Procesamiento de la entrada por linea de comandos */
 
+  /* Otras variables e inicializaciones */
+  PilaString *pendientes = newPilaString(); // Pila que contiene los nombres de 
+                                            // los directorios pendientes por 
+                                            // revisar.
+  int numRegFiles = 0;                      // Contador de archivos regulares.
+  ListaInt *resultados;
+
   struct dirent *direntp;
 
   while ((direntp=readdir(startDir)) != NULL) {
-    printf("%s\n", direntp->d_name);
+    int result;
+    struct stat statBuf;
+    mode_t mode;
+  
+    result=stat(direntp->d_name, &statBuf);
+    if (result==-1) {
+      fprintf(stderr,"UsoDisco:\nERROR: Problema al obtener los stats del archivo %s",direntp->d_name);
+      exit(-1);
+    }
+    mode=statBuf.st_mode;
+    if (S_ISDIR(mode)) {
+      /* Lo añado a la pila de directorios por explorar */
+      
+      printf("Es directorio y tiene %d bytes y %d links\n", (int) statBuf.st_size,(int) statBuf.st_nlink);
+    } else if (S_ISREG(mode)) {
+      /* Lo contabilizo */
+      printf("Es Regular y tiene %d bytes y %d links\n",(int) statBuf.st_size,(int) statBuf.st_nlink);
+    }
   }
 
   printf("hola!!!");
@@ -151,6 +178,7 @@ int main (int argc, char **argv) {
   write(out,string,strlen(string));
   closedir(startDir);
   close(out);
+  free(startDirName);
 
   return 0;
 }
