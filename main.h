@@ -1,4 +1,3 @@
-#include "almacenamiento.h"
 
 #ifndef STD
 #define STD
