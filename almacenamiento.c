@@ -16,6 +16,90 @@
 #define TRUE 1
 #endif
 
+
+/*INICIO funciones y Procedimientos referentes al tipo PilaString*/
+StackString *newStackString() {
+  StackString *nueva = (StackString *) malloc(sizeof(StackString));
+  if (nueva != NULL) {
+    nueva->sig = NULL;
+    return nueva;
+  }  else {
+    fprintf(stderr, "newStackString: Error al hacer la reserva de memoria!!!\n");
+    exit(1);
+  }
+}
+
+  PilaString *newPilaString() {
+    PilaString *nueva = (PilaString *) malloc(sizeof(PilaString));
+    if (nueva != NULL) {
+      nueva->head = NULL;
+      nueva->size = 0;
+      return nueva;
+    }  else {
+      fprintf(stderr, "newPilaString: Error al hacer la reserva de memoria!!!\n");
+      exit(1);
+    }
+  }
+
+void pushPilaString(PilaString *pila, char* elem) {
+  StackString *nueva  = newStackString();
+  nueva->palabra = elem;
+  nueva->sig = pila->head;
+  pila->head = nueva;
+  pila->size++;  
+  return;
+}
+
+char* popPilaString(PilaString *pila) {
+  if (esVaciaPilaString(pila)) {
+    fprintf(stderr, "popPilaString: Error al sacar un elemento de la pila: pila vacia!!!\n");
+    return;
+  } else {
+    StackString *salida = pila->head;
+    pila->head = pila->head->sig;
+    pila->size--;
+    char *aux = salida->palabra;
+    free(salida);
+    return ;
+  }
+}
+
+int esVaciaPilaString(PilaString *pila) {
+  if (pila->size == 0) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+void imprimePilaString(PilaString *pila) {
+  if (esVaciaPilaString(pila) == 1) {
+    printf("\n --LA PILA ESTA VACIA--\n");
+  } else {
+    printf("\n --TAMAÑO = %d --\n", pila->size);
+    printf("--------------------\n");
+    printf("   %s\n", pila->head->palabra);
+    int tam = pila->size;
+    StackString *itera = newStackString();
+    itera->sig = pila->head;
+    while (tam > 1) {
+      itera->sig = itera->sig->sig;
+      tam--;
+      printf("   %s   \n", itera->sig->palabra);
+    }
+    printf("--------------------\n");
+  }
+  return;
+}
+
+void cleanPila(PilaString *pila) {
+  while (esVaciaPilaString(pila) == 0) {
+    popPilaString(pila);
+  }
+}
+
+      /*FIN funciones y Procedimientos referentes al tipo PilaString*/
+
 /*INICIO Funciones y Procedimientos referentes al tipo ListaInt*/
 CajitaInt *newCajitaInt() {
   CajitaInt *nueva = (CajitaInt *) malloc(sizeof(CajitaInt));
@@ -39,6 +123,8 @@ ListaInt *newListaInt() {
     exit(1);
   }
 }
+
+
 
 int add(ListaInt *list, int elem) {
   CajitaInt *nueva = newCajitaInt();

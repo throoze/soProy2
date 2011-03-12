@@ -10,11 +10,90 @@
 
 /*----------------------------------------------------------------------------*/
 
-/*INICIO definición del tipo ListaInt.*/
+/* Definicion del tipo PilaString */
 
 /**
- * Clasica lista de elementos. Es una lista de apuntadores a void, con lo cual
- * se podra almacenar practicamente cualquier cosa.
+ * Estructura de pila convencional. Almacena Strings mediante apuntadores.
+ */
+
+typedef struct stack StackString;
+
+struct stack {
+  char *palabra;
+  StackString *sig;
+};
+
+typedef struct {
+  StackString *head;
+  int size;
+} PilaString;
+
+/* FIN tipo PilaString */
+
+/* INICIO de operaciones referentes al tipo PilaString*/
+
+/**
+ * Crea un nuevo stack de Strings, reservando la memoria para ello
+ * 
+ * retorna: Un nuevo apuntador a StackString vacio. 
+ */
+StackString *newStackString();
+
+/**
+ * Crea una nueva pila vacia, reservando la memoria para ello
+ * 
+ * retorna: Un nuevo apuntador a PilaString vacia.
+ */
+PilaString *newPilaString();
+
+/**
+ * Inserta un nuevo elemento elem la PilaString pila.
+ *
+ * *pila: apuntador a la pila en donde se desea insertar el elemento.
+ *
+ * elem: String que se desea insertar en la pila.
+ *
+ * retorna: void.
+ */
+void pushPilaString(PilaString *pila, char* elem);
+
+/**
+ * Elimina el primer elemento de la PilaString pila.
+ *
+ * *pila: apuntador a la pila de la cual se desea obtener el elemento.
+ *
+ * retorna: el string almacenado en stack obtenido.
+ */
+char* popPilaString(PilaString *pila);
+
+/**
+ * Verifica si la PilaString pila esta vacia, es decir, no contiene elementos.
+ *
+ * *pila: apuntador a la pila en cuestion.
+ *
+ * retorna: 1 si la pila esta vacia 0 en caso contrario.
+ */
+int esVaciaPilaString(PilaString *pila);
+
+
+/**
+ *Imprime la pila mostrando cada uno de sus elementos y si tamano total.
+ *
+ **pila: pila a imprimir
+ */
+void imprimePilaString(PilaString *pila);
+
+/**
+ *Vacia la PilaString pila
+ */
+void cleanPila(PilaString *pila);
+
+/*FIN de operaciones referentes al tipo PilaString */
+
+/*Definición del tipo ListaInt.*/
+
+/**
+ * Clasica lista de elementos. Es una lista de apuntadores que almacena int.
  */
 typedef struct cajitaInt CajitaInt;
 
