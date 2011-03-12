@@ -151,5 +151,6 @@ int main (int argc, char **argv) {
   write(out,string,strlen(string));
   closedir(startDir);
   close(out);
+
   return 0;
 }
