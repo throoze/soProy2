@@ -29,17 +29,17 @@ StackString *newStackString() {
   }
 }
 
-  PilaString *newPilaString() {
-    PilaString *nueva = (PilaString *) malloc(sizeof(PilaString));
-    if (nueva != NULL) {
-      nueva->head = NULL;
-      nueva->size = 0;
-      return nueva;
-    }  else {
-      fprintf(stderr, "newPilaString: Error al hacer la reserva de memoria!!!\n");
-      exit(1);
-    }
+PilaString *newPilaString() {
+  PilaString *nueva = (PilaString *) malloc(sizeof(PilaString));
+  if (nueva != NULL) {
+    nueva->head = NULL;
+    nueva->size = 0;
+    return nueva;
+  }  else {
+    fprintf(stderr, "newPilaString: Error al hacer la reserva de memoria!!!\n");
+    exit(1);
   }
+}
 
 void pushPilaString(PilaString *pila, char* elem) {
   StackString *nueva  = newStackString();
@@ -98,7 +98,7 @@ void cleanPila(PilaString *pila) {
   }
 }
 
-      /*FIN funciones y Procedimientos referentes al tipo PilaString*/
+/*FIN funciones y Procedimientos referentes al tipo PilaString*/
 
 /*INICIO Funciones y Procedimientos referentes al tipo ListaInt*/
 CajitaInt *newCajitaInt() {
