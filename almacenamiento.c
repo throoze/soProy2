@@ -43,7 +43,7 @@ PilaString *newPilaString() {
 
 void pushPilaString(PilaString *pila, char* elem) {
   StackString *nueva  = newStackString();
-  nueva->palabra = elem;
+  strcpy(nueva->palabra , elem);
   nueva->sig = pila->head;
   pila->head = nueva;
   pila->size++;  
@@ -79,10 +79,10 @@ void imprimePilaString(PilaString *pila) {
     printf("\n --TAMAÑO = %d --\n", pila->size);
     printf("--------------------\n");
     printf("   %s\n", pila->head->palabra);
-    int tam = pila->size;
+    int tam = pila->size - 1;
     StackString *itera = newStackString();
     itera->sig = pila->head;
-    while (tam > 1) {
+    while (tam > 0) {
       itera->sig = itera->sig->sig;
       tam--;
       printf("   %s   \n", itera->sig->palabra);
@@ -174,7 +174,7 @@ void delete(ListaInt *list, int elem){
 }
 
 void get_li(ListaInt *list, int posi, int *ans){
-  CajitaInt *aux = lista.head;
+  CajitaInt *aux = list->head;
   while (aux->pos != posi && aux && aux->sig) {
     aux = aux->sig;
   }
@@ -187,8 +187,8 @@ void get_li(ListaInt *list, int posi, int *ans){
   }
 }
 
-int isIn(ListaInt *list, int elem){
-  CajitaInt *aux = list->head;
+int isIn(ListaInt *lista, int elem){
+  CajitaInt *aux = lista->head;
   while (aux) {
     if (aux->data == elem) {
       return TRUE;

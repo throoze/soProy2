@@ -19,7 +19,7 @@
 typedef struct stack StackString;
 
 struct stack {
-  char *palabra;
+  char palabra[100];
   StackString *sig;
 };
 

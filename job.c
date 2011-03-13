@@ -18,6 +18,7 @@
 
 #include "job.h"
 
+
 int main(int argc, char **argv){
   DIR *dirp;
   struct dirent *direntp;
@@ -30,19 +31,36 @@ int main(int argc, char **argv){
   	    strerror(errno));
     exit(1);
   }
-  char *aux;
+
+  int sumTam  = 0;
+  int numArchi = 0;
+  PilaString *directorios = newPilaString();
+ 
   while ((direntp=readdir(dirp)) != NULL) {
-    aux = argv[1];
-    sprintf(aux, "%s%s", aux, direntp->d_name);
+    char aux[50];
+    fflush(stdout);
+    sprintf(aux, "%s/%s", argv[1] , direntp->d_name);
     if (stat(aux, &statbuf) == -1) {
       fprintf(stderr, " No se pudo aplicar stat sobre el archivo %s: %s \n", aux, strerror(errno));
       exit(1);
     }
-    if (statbuf.st_mode & S_IFDIR)
+    if (statbuf.st_mode & S_IFDIR) {
       printf("%s es un directorio\n", aux);
+      pushPilaString(directorios, aux);
+      imprimePilaString(directorios);
+  }
     else
-      printf("%s no es un directorio\n", aux);
+          printf("%s no es un directorio\n", aux);
   }
   closedir(dirp);
+  imprimePilaString(directorios);
   exit(0);
 }
+
+
+
+
+
+
+
+
