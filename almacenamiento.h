@@ -157,6 +157,16 @@ void delete(ListaInt *list,  int elem);
  */
 void get_li(ListaInt *list, int posi, int *ans);
 
+
+/**
+ * Devuelve un arreglo de enteros conteniendo los elementos de la lista 'list'
+ * en el mismo orden en que estaban almacenados.
+ * list: Lista a transformar en arreglo.
+ * retorna: un arreglo de enteros que contiene los elementos de 'lista' en el
+ *          mismo orden en que estaban almacenados.
+ */
+int *liToArray(ListaInt *list);
+
 /**
  * Dice si un elemento 'elem' está actualmente o no en la Lista '*list'.
  * 
