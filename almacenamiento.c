@@ -53,14 +53,14 @@ void pushPilaString(PilaString *pila, char* elem) {
 char* popPilaString(PilaString *pila) {
   if (esVaciaPilaString(pila)) {
     fprintf(stderr, "popPilaString: Error al sacar un elemento de la pila: pila vacia!!!\n");
-    return;
+    return NULL;
   } else {
     StackString *salida = pila->head;
     pila->head = pila->head->sig;
     pila->size--;
     char *aux = salida->palabra;
     free(salida);
-    return ;
+    return aux;
   }
 }
 
@@ -174,8 +174,8 @@ void delete(ListaInt *list, int elem){
 }
 
 void get_li(ListaInt *list, int posi, int *ans){
-  CajitaInt *aux = lista.head;
-  while (aux->pos != posi && aux && aux->sig) {
+  CajitaInt *aux = list->head;
+  while (aux && aux->pos != posi && aux->sig) {
     aux = aux->sig;
   }
   if (aux) {
@@ -185,6 +185,17 @@ void get_li(ListaInt *list, int posi, int *ans){
       ans = NULL;
     }
   }
+}
+
+int *liToArray(ListaInt *list){
+  int *arr = (int *) malloc(list->size * sizeof(int));
+  CajitaInt *aux = list->head;
+  register int i = 0;
+  while (aux) {
+    arr[i] = aux->data;
+    aux = aux->sig;
+  }
+  return arr;
 }
 
 int isIn(ListaInt *list, int elem){
