@@ -21,8 +21,6 @@ LIBOJ = almacenamiento.o
 OBJ1 = main.o ${LIBO}
 OBJ2 = job.o ${LIBOJ}
 
-
-
 # CFLAGS = -w
 CFLAGS = 
 
@@ -47,7 +45,7 @@ almacenamiento.o: almacenamiento.c almacenamiento.h
 	gcc ${CFLAGS} -c almacenamiento.c
 
 clean:
-	rm $(ls|grep ~$) *.o ${EXE1} ${EXE2}
+	makeclean.sh
 
 check-syntax:
 	gcc -o nul -Wall -S ${CHK_SOURCES}
