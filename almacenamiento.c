@@ -215,8 +215,8 @@ int isIn(ListaInt *list, int elem) {
   return FALSE;
 }
 
-void li_print(ListaInt lista) {
-  CajitaInt *aux = lista.head;
+void li_print(ListaInt *lista) {
+  CajitaInt *aux = lista->head;
   printf("|-------|\n");
   while (aux) {
     printf("|%d\t|\n", aux->data);
@@ -227,16 +227,22 @@ void li_print(ListaInt lista) {
 
 int getFirstLI(ListaInt *list) {
   int ans = INT_MIN;
-  if (list->head) {
+  if (list->size != 0 && list->head) {
     ans = list->head->data;
-    if (list->head->sig) {
-      CajitaInt *aux = list->head;
-      list->tail = list->head->sig;
+    CajitaInt *aux = list->head;
+    if (list->size == 1) {
+      list->head = list->tail = NULL;
       free(aux);
-      aux = NULL;
-      list->size--;
+      list->size--;      
     } else {
-      return INT_MIN;
+      if (list->head->sig) {	
+	list->tail = list->head->sig;
+	free(aux);
+	aux = NULL;
+	list->size--;
+      } else {
+	return ans;
+      }
     }
   }
   return ans;
@@ -244,16 +250,22 @@ int getFirstLI(ListaInt *list) {
 
 int getLastLI(ListaInt *list) {
   int ans = INT_MIN;
-  if (list->tail) {
+  if (list->size != 0 && list->tail) {
     ans = list->tail->data;
-    if (list->tail->ant) {
-      CajitaInt *aux = list->tail;
-      list->tail = list->tail->ant;
+    CajitaInt *aux = list->tail;
+    if (list->size == 1) {
+      list->head = list->tail = NULL;
       free(aux);
-      aux = NULL;
-      list->size--;
+      list->size--;      
     } else {
-      return INT_MIN;
+      if (list->tail->ant) {
+	list->tail = list->tail->ant;
+	free(aux);
+	aux = NULL;
+	list->size--;
+      } else {
+	return INT_MIN;
+      }
     }
   }
   return ans;
@@ -402,29 +414,36 @@ int isInLS(ListaStr *list, char *elem) {
   return FALSE;
 }
 
-void LSprint(ListaStr lista) {
-  CajaStr *aux = lista.head;
-  printf("|---INICIO---|\n");
+void LSprint(ListaStr *lista) {
+  CajaStr *aux = lista->head;
+  printf("|-----TAMAÑO = %d-----|\n",lista->size);
+  printf("|-------INICIO-------|\n");
   while (aux) {
     printf("%s\n", aux->data);
     aux = aux->sig;
   }
-  printf("|----FIN----|\n");
+  printf("|--------FIN---------|\n");
 }
 
 char *getFirstLS(ListaStr *list) {
   char *ans = NULL;
-  if (list->head) {
+  if (list->size != 0 && list->head) {
     ans = list->head->data;
-    if (list->head->sig) {
-      CajaStr *aux = list->head;
-      list->tail = list->head->sig;
-      free(aux->data);
+    CajaStr *aux = list->head;
+    if (list->size == 1) {
+      list->head = list->tail = NULL;
       free(aux);
-      aux = NULL;
-      list->size--;
+      list->size--;      
     } else {
-      return ans;
+      if (list->head->sig) {	
+	list->tail = list->head->sig;
+	free(aux->data);
+	free(aux);
+	aux = NULL;
+	list->size--;
+      } else {
+	return ans;
+      }
     }
   }
   return ans;
@@ -432,17 +451,23 @@ char *getFirstLS(ListaStr *list) {
 
 char *getLastLS(ListaStr *list) {
   char *ans = NULL;
-  if (list->tail) {
+  if (list->size != 0 && list->tail) {
     ans = list->tail->data;
-    if (list->tail->ant) {
-      CajaStr *aux = list->tail;
-      list->tail = list->tail->ant;
-      free(aux->data);
+    CajaStr *aux = list->tail;
+    if (list->size == 1) {
+      list->head = list->tail = NULL;
       free(aux);
-      aux = NULL;
-      list->size--;
+      list->size--;      
     } else {
-      return ans;
+      if (list->tail->ant) {
+	list->tail = list->tail->ant;
+	free(aux->data);
+	free(aux);
+	aux = NULL;
+	list->size--;
+      } else {
+	return ans;
+      }
     }
   }
   return ans;

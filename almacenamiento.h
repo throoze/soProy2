@@ -192,7 +192,7 @@ int isIn(ListaInt *list, int elem);
  * 
  * lista: ListaInt a imprimir.
  */
-void li_print(ListaInt lista);
+void li_print(ListaInt *lista);
 
 /**
  * Devuelve el primer elemento de la lista, y lo elimina de ésta.
@@ -322,7 +322,7 @@ int isInLS(ListaStr *list, char *elem);
  * 
  * lista: ListaInt a imprimir.
  */
-void LSprint(ListaStr lista);
+void LSprint(ListaStr *lista);
 
 /**
  * Devuelve el primer elemento de la lista, y lo elimina de ésta.
