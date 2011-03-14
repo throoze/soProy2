@@ -1,7 +1,15 @@
 /*
+ * Universidad Simón Bolívar
+ * Departamento de Computación y Tecnología de la Información
+ * CI-3825  --  Sistemas Operativos I
+ * Prof.: Yudith Cardinale
+ * Proyecto 2: Comunicación entre procesos
+ * Grupo 26
+ * Autores: Victor De Ponte, 05-38087
+ *	   	Isaac Lopez, 07-41120
+ *
  * Archivo: almacenamiento.c
- * Desarrollado por: Victor De Ponte
- *                   Isaac Lopez
+ * Descripción: Librería que define estructuras de almacenamiento de datos.
  */
 
 #include "almacenamiento.h"
@@ -48,7 +56,7 @@ PilaString *newPilaString() {
 
 void pushPilaString(PilaString *pila, char* elem) {
   StackString *nueva  = newStackString();
-  nueva->palabra = elem;
+  strcpy(nueva->palabra , elem);
   nueva->sig = pila->head;
   pila->head = nueva;
   pila->size++;  
@@ -84,10 +92,10 @@ void imprimePilaString(PilaString *pila) {
     printf("\n --TAMAÑO = %d --\n", pila->size);
     printf("--------------------\n");
     printf("   %s\n", pila->head->palabra);
-    int tam = pila->size;
+    int tam = pila->size - 1;
     StackString *itera = newStackString();
     itera->sig = pila->head;
-    while (tam > 1) {
+    while (tam > 0) {
       itera->sig = itera->sig->sig;
       tam--;
       printf("   %s   \n", itera->sig->palabra);
@@ -180,7 +188,7 @@ void delete(ListaInt *list, int elem) {
 
 void get_li(ListaInt *list, int posi, int *ans) {
   CajitaInt *aux = list->head;
-  while (aux && aux->pos != posi && aux->sig) {
+  while (aux->pos != posi && aux && aux->sig) {
     aux = aux->sig;
   }
   if (aux) {

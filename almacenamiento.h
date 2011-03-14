@@ -1,3 +1,18 @@
+/*
+ * Universidad Simón Bolívar
+ * Departamento de Computación y Tecnología de la Información
+ * CI-3825  --  Sistemas Operativos I
+ * Prof.: Yudith Cardinale
+ * Proyecto 2: Comunicación entre procesos
+ * Grupo 26
+ * Autores: Victor De Ponte, 05-38087
+ *	   	Isaac Lopez, 07-41120
+ *
+ * Archivo: almacenamiento.h
+ * Descripción: Librería que define estructuras de almacenamiento de datos.
+ *              (HEADER)
+ */
+
 #ifndef STD
 #define STD
 #include <stdio.h>
@@ -24,7 +39,7 @@
 typedef struct stack StackString;
 
 struct stack {
-  char *palabra;
+  char palabra[100];
   StackString *sig;
 };
 
@@ -225,7 +240,7 @@ int li_liberar(ListaInt *lista);
 /*----------------------------------------------------------------------------*/
 
 
-/*Definición del tipo ListaInt.*/
+/*Definición del tipo ListaStr.*/
 
 /**
  * Clasica lista de elementos. Es una lista de apuntadores que almacena char *.
@@ -243,7 +258,7 @@ typedef struct {
   CajaStr *head,*tail;
   int size;
 } ListaStr;
-/*FIN del tipo ListaInt.*/
+/*FIN del tipo ListaStr.*/
 
 /*INICIO Funciones y Procedimientos referentes al tipo ListaStr*/
 /**
