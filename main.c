@@ -67,7 +67,7 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
       printf(USO);
       exit(0);
     } else {
-      fprintf(stderr,"UsoDisco:\nERROR: La opción '-h' no debe usarse junto con otras opciones.\n");
+      fprintf(stderr,"\nUsoDisco:\nERROR: La opción '-h' no debe usarse junto con otras opciones.\n");
       printf(USO);
       exit(1);
     }
@@ -78,37 +78,41 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
 	char *p = argv[*i];
 	*nc = strtoul(argv[*i],&p,10);
       } else {
-	fprintf(stderr,"UsoDisco:\nERROR: Se esperaba un numero despues de la opcion '-n'.\n");
+	fprintf(stderr,"\nUsoDisco:\nERROR: Se esperaba un numero despues de la opcion '-n'.\n");
 	printf(USO);
 	exit(1);
       }
     } else {
-      printf("UsoDisco:\nERROR: Se esperaba un argumento despues de la opcion '-n'.\n");
+      printf("\nUsoDisco:\nERROR: Se esperaba un argumento despues de la opcion '-n'.\n");
       printf(USO);
       exit(1);
     }
   } else if (strcmp(argv[*i],"-d") == 0) {
     if ((*i+1) < argc) {
       closedir(*startDir);
-      if ( (*startDir = opendir(argv[*i+1])) == NULL) {
-	char aux[53 + strlen(argv[*i+1])];
-	sprintf(aux,"UsoDisco:\nERROR: Problema abriendo el directorio %s\n\t", argv[*i+1]);
+      *startDirName = (char *) malloc((strlen(argv[*i+1]) + 2) * sizeof(char));
+      strcpy(*startDirName,argv[*i+1]);
+      
+      if ( argv[*i+1][strlen(argv[*i+1])-1] != '/') {
+	sprintf(*startDirName, "%s/", *startDirName);
+      }
+      if ( (*startDir = opendir(*startDirName)) == NULL) {
+	char aux[53 + strlen(*startDirName)];
+	sprintf(aux,"\nUsoDisco:\nERROR: Problema abriendo el directorio %s\n\t", *startDirName);
 	perror(aux);
 	printf(USO);
 	exit(1);
       }
-      *startDirName = (char *) malloc(sizeof(argv[*i+1]));
-      *startDirName = argv[*i+1];
       *i = *i + 1;
     } else {
-      fprintf(stderr,"UsoDisco:\nERROR: Se esperaba un argumento despues de la opcion '-d'.\n");
+      fprintf(stderr,"\nUsoDisco:\nERROR: Se esperaba un argumento despues de la opcion '-d'.\n");
       printf(USO);
       exit(1);
     }
   } else {
-    if ( (*out = open(argv[*i], O_RDWR | O_CREAT,600)) < 0) {
+    if ( (*out = open(argv[*i], O_RDWR | O_CREAT,600)) < 0) {      
       char aux[60 + strlen(argv[*i])];
-      sprintf(aux,"UsoDisco:\nERROR: Problema abriendo o creando el archivo %s\n\t", argv[*i]);
+      sprintf(aux,"\nUsoDisco:\nERROR: Problema abriendo o creando el archivo \"%s\"\n\t", argv[*i]);
       perror(aux);
       printf(USO);
       exit(1);
@@ -116,10 +120,51 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
   }
 }
 
+void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *ansDirs,ListaInt *ansBlocks,int *numRegFiles,int *numDirs, int *totalBlocks){
+  struct dirent *direntp;
+  while ((direntp=readdir(startDir)) != NULL) {
+    if (strcmp(direntp->d_name,".") != 0 && strcmp(direntp->d_name,"..") != 0) {
+      int result;
+      struct stat statBuf;
+      mode_t mode;
+
+      char *fileName = (char *) malloc((strlen(startDirName) + strlen(direntp->d_name) + 2) * sizeof(char));
+      sprintf(fileName,"%s%s",startDirName,direntp->d_name);    
+  
+      result=stat(fileName, &statBuf);
+
+      if (result==-1) {
+	char msg[] = "\nUsoDisco:\nERROR: Problema al obtener los stats del archivo ";
+	sprintf(msg,"%s%s%s\n",msg,startDirName,direntp->d_name);
+	perror(msg);
+	free(fileName);
+	exit(-1);
+      }
+
+      mode=statBuf.st_mode;
+      if (S_ISDIR(mode)) {
+	/* Lo añado a la pila de directorios por explorar y lo contabilizo*/
+	sprintf(fileName,"%s/", fileName);
+	pushPilaString(pendDirs,fileName);
+	*numDirs = *numDirs + 1;
+	//printf("El archivo \"%s\" Es directorio y tiene %d bytes y %d links\n",fileName, (int) statBuf.st_size,(int) statBuf.st_nlink);
+      } else if (S_ISREG(mode)) {
+	/* Lo contabilizo y contabilizo su peso*/
+	*numRegFiles = *numRegFiles + 1;
+	*totalBlocks = *totalBlocks + ((int) statBuf.st_blocks);
+	//printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
+      }
+    }
+  }
+  addLS(ansDirs, startDirName);
+  add(ansBlocks, *totalBlocks);
+  *numDirs = *numDirs + 1;
+}
+
 int main (int argc, char **argv) {
   /* Procesamiento de la entrada por linea de comandos */
   if (argc > 6) {
-    fprintf(stderr,"UsoDisco:\nERROR: Demasiados argumentos.\n");
+    fprintf(stderr,"\nUsoDisco:\nERROR: Demasiados argumentos.\n");
     printf(USO);
     exit(1);
   }
@@ -127,9 +172,9 @@ int main (int argc, char **argv) {
   /* Valores por default */
   unsigned long nc = 1;     // Nivel de concurrencia
   DIR *startDir;            // Directorio inicial
-  char *startDirName = ".";
+  char *startDirName = "./";
   if ( (startDir = opendir(startDirName)) == NULL) {
-    perror("UsoDisco:\nERROR: Problema abriendo el directorio \".\" (directorio por defecto)\n\t");
+    perror("\nUsoDisco:\nERROR: Problema abriendo el directorio \"./\" (directorio por defecto)\n\t");
     printf(USO);
     exit(1);
   }
@@ -143,42 +188,55 @@ int main (int argc, char **argv) {
   }
   /* Fin del Procesamiento de la entrada por linea de comandos */
 
+  printf("El nombre del directorio de inicio es: %s\n\n", startDirName);
+
   /* Otras variables e inicializaciones */
-  PilaString *pendientes = newPilaString(); // Pila que contiene los nombres de 
-                                            // los directorios pendientes por 
-                                            // revisar.
-  int numRegFiles = 0;                      // Contador de archivos regulares.
-  ListaInt *resultados;
+  PilaString *pendDirs = newPilaString(); // Pila que contiene los nombres de 
+                                          // los directorios pendientes por 
+                                          // revisar.
+  ListaStr *ansDirs = newListaStr();      // Pila que contiene los nombres de 
+                                          // Los directorios que se han explo-
+                                          // rado.
+  ListaInt *ansBlocks = newListaInt();    // Contiene la cantidad de bloques
+                                          // asociados a los archivos conta-
+                                          // bilizados por la posición que o-
+                                          // cupan
+  int numRegFiles = 0;                    // Contador de archivos regulares.
+  int numDirs = 0;                        // Contador de directorios explorados.
+  int totalBlocks = 0;                    // Contador de bloques.
 
-  struct dirent *direntp;
+  firstPass(startDir,startDirName,pendDirs,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
 
-  while ((direntp=readdir(startDir)) != NULL) {
-    int result;
-    struct stat statBuf;
-    mode_t mode;
-  
-    result=stat(direntp->d_name, &statBuf);
-    if (result==-1) {
-      fprintf(stderr,"UsoDisco:\nERROR: Problema al obtener los stats del archivo %s",direntp->d_name);
-      exit(-1);
-    }
-    mode=statBuf.st_mode;
-    if (S_ISDIR(mode)) {
-      /* Lo añado a la pila de directorios por explorar */
-      
-      printf("Es directorio y tiene %d bytes y %d links\n", (int) statBuf.st_size,(int) statBuf.st_nlink);
-    } else if (S_ISREG(mode)) {
-      /* Lo contabilizo */
-      printf("Es Regular y tiene %d bytes y %d links\n",(int) statBuf.st_size,(int) statBuf.st_nlink);
-    }
-  }
-
-  printf("hola!!!");
   char string[] = "Wepale!!!! estoy escribiendo fino!!!\n";
   write(out,string,strlen(string));
-  closedir(startDir);
-  close(out);
-  free(startDirName);
+  
 
+  printf("\n\npendDirs:\n");
+  imprimePilaString(pendDirs);
+  printf("\n\nansBlocks:\n");
+  li_print(ansBlocks);
+  printf("\n\nansDirs:\n");
+  LSprint(ansDirs);
+  
+  /* LIBERACION DE MEMORIA USADA Y CIERRE DE FICHEROS ABIERTOS*/
+  cleanPila(pendDirs);
+  li_liberar(ansBlocks);
+  LSLiberar(ansDirs);
+  closedir(startDir);
+  if (out != 1) {
+    close(out);
+  }
+  
+  printf("\nDespues de liberar:\n");
+  printf("\n\npendDirs:\n");
+  imprimePilaString(pendDirs);
+  printf("\n\nansBlocks:\n");
+  li_print(ansBlocks);
+  printf("\n\nansDirs:\n");
+  LSprint(ansDirs);
+
+  /* SUMARIO */
+  printf("\n\nSUMARIO:\n\n\tNumero de procesos creados:\t\t\t%lu\n\tNumero de directorios examinados:\t\t%d\n\tNumero de archivos regulares contabilizados:\t%d\n", nc,numDirs,numRegFiles);
+  fflush(stdout);
   return 0;
 }
