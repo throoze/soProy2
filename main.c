@@ -22,6 +22,11 @@
 #define TRUE 1
 #endif
 
+#ifndef EDG
+#define EDG
+#include <limits.h>
+#endif
+
 #ifndef FCNTL
 #define FCNTL
 #include <fcntl.h>
@@ -188,7 +193,7 @@ int main (int argc, char **argv) {
   }
   /* Fin del Procesamiento de la entrada por linea de comandos */
 
-  printf("El nombre del directorio de inicio es: %s\n\n", startDirName);
+  printf("El nombre del directorio de inicio es: %s\n", startDirName);
 
   /* Otras variables e inicializaciones */
   PilaString *pendDirs = newPilaString(); // Pila que contiene los nombres de 
@@ -209,13 +214,21 @@ int main (int argc, char **argv) {
 
   char string[] = "Wepale!!!! estoy escribiendo fino!!!\n";
   write(out,string,strlen(string));
-  
 
-  printf("\n\npendDirs:\n");
+  /* COSAS QUE FALTAN: */
+  ///////////////////////
+  /* -CREAR LOS HIJOS */
+  /* -CREAR LOS PIPES */
+  /* -COORDINAR LA ASIGNACION DE TRABAJOS */
+  /* -PASAR LAS LISTAS A ARREGLOS */
+  /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
+  /* -ESCRIBIR LA SALIDA */
+
+  printf("\npendDirs:\n");
   imprimePilaString(pendDirs);
-  printf("\n\nansBlocks:\n");
+  printf("\nansBlocks:\n");
   li_print(ansBlocks);
-  printf("\n\nansDirs:\n");
+  printf("\nansDirs:\n");
   LSprint(ansDirs);
   
   /* LIBERACION DE MEMORIA USADA Y CIERRE DE FICHEROS ABIERTOS*/
