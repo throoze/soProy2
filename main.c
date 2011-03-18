@@ -66,6 +66,7 @@
 
 #include "main.h"
 
+
 void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,char **startDirName, int *out){
   if (strcmp(argv[*i],"-h") == 0) {
     if (argc == 2) {
@@ -139,25 +140,25 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
       result=stat(fileName, &statBuf);
 
       if (result==-1) {
-	char msg[] = "\nUsoDisco:\nERROR: Problema al obtener los stats del archivo ";
-	sprintf(msg,"%s%s%s\n",msg,startDirName,direntp->d_name);
-	perror(msg);
-	free(fileName);
-	exit(-1);
+        char msg[] = "\nUsoDisco:\nERROR: Problema al obtener los stats del archivo ";
+        sprintf(msg,"%s%s%s\n",msg,startDirName,direntp->d_name);
+        perror(msg);
+        free(fileName);
+        exit(-1);
       }
 
       mode=statBuf.st_mode;
       if (S_ISDIR(mode)) {
-	/* Lo añado a la pila de directorios por explorar y lo contabilizo*/
-	sprintf(fileName,"%s/", fileName);
-	pushPilaString(pendDirs,fileName);
-	*numDirs = *numDirs + 1;
-	//printf("El archivo \"%s\" Es directorio y tiene %d bytes y %d links\n",fileName, (int) statBuf.st_size,(int) statBuf.st_nlink);
+        /* Lo añado a la pila de directorios por explorar y lo contabilizo*/
+        sprintf(fileName,"%s/", fileName);
+        pushPilaString(pendDirs,fileName);
+        *numDirs = *numDirs + 1;
+        //printf("El archivo \"%s\" Es directorio y tiene %d bytes y %d links\n",fileName, (int) statBuf.st_size,(int) statBuf.st_nlink);
       } else if (S_ISREG(mode)) {
-	/* Lo contabilizo y contabilizo su peso*/
-	*numRegFiles = *numRegFiles + 1;
-	*totalBlocks = *totalBlocks + ((int) statBuf.st_blocks);
-	//printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
+        /* Lo contabilizo y contabilizo su peso*/
+        *numRegFiles = *numRegFiles + 1;
+        *totalBlocks = *totalBlocks + (((int) statBuf.st_size)/((int) statBuf.st_blksize));
+        //printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
       }
     }
   }
