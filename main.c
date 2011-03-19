@@ -78,7 +78,7 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
       exit(1);
     }
   } else if (strcmp(argv[*i],"-n") == 0) {
-    if ((*i+1) < argc) {      
+    if ((*i+1) < argc) {
       if (strIsUL(argv[*i+1])) {
 	*i = *i + 1;
 	char *p = argv[*i];
@@ -98,7 +98,7 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
       closedir(*startDir);
       *startDirName = (char *) malloc((strlen(argv[*i+1]) + 2) * sizeof(char));
       strcpy(*startDirName,argv[*i+1]);
-      
+
       if ( argv[*i+1][strlen(argv[*i+1])-1] != '/') {
 	sprintf(*startDirName, "%s/", *startDirName);
       }
@@ -116,7 +116,7 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
       exit(1);
     }
   } else {
-    if ( (*out = open(argv[*i], O_RDWR | O_CREAT,600)) < 0) {      
+    if ( (*out = open(argv[*i], O_RDWR | O_CREAT,600)) < 0) {
       char aux[60 + strlen(argv[*i])];
       sprintf(aux,"\nUsoDisco:\nERROR: Problema abriendo o creando el archivo \"%s\"\n\t", argv[*i]);
       perror(aux);
@@ -135,8 +135,8 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
       mode_t mode;
 
       char *fileName = (char *) malloc((strlen(startDirName) + strlen(direntp->d_name) + 2) * sizeof(char));
-      sprintf(fileName,"%s%s",startDirName,direntp->d_name);    
-  
+      sprintf(fileName,"%s%s",startDirName,direntp->d_name);
+
       result=stat(fileName, &statBuf);
 
       if (result==-1) {
@@ -158,6 +158,7 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
         /* Lo contabilizo y contabilizo su peso*/
         *numRegFiles = *numRegFiles + 1;
         *totalBlocks = *totalBlocks + (((int) statBuf.st_size)/((int) statBuf.st_blksize));
+        //*totalBlocks = *totalBlocks + ((int) statBuf.st_blocks);
         //printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
       }
     }
@@ -197,10 +198,10 @@ int main (int argc, char **argv) {
   printf("El nombre del directorio de inicio es: %s\n", startDirName);
 
   /* Otras variables e inicializaciones */
-  PilaString *pendDirs = newPilaString(); // Pila que contiene los nombres de 
-                                          // los directorios pendientes por 
+  PilaString *pendDirs = newPilaString(); // Pila que contiene los nombres de
+                                          // los directorios pendientes por
                                           // revisar.
-  ListaStr *ansDirs = newListaStr();      // Pila que contiene los nombres de 
+  ListaStr *ansDirs = newListaStr();      // Pila que contiene los nombres de
                                           // Los directorios que se han explo-
                                           // rado.
   ListaInt *ansBlocks = newListaInt();    // Contiene la cantidad de bloques
@@ -213,8 +214,6 @@ int main (int argc, char **argv) {
 
   firstPass(startDir,startDirName,pendDirs,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
 
-  char string[] = "Wepale!!!! estoy escribiendo fino!!!\n";
-  write(out,string,strlen(string));
 
   /* COSAS QUE FALTAN: */
   ///////////////////////
@@ -225,13 +224,17 @@ int main (int argc, char **argv) {
   /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
   /* -ESCRIBIR LA SALIDA */
 
+  char string[] = "Wepale!!!! estoy escribiendo fino!!!\n";
+  write(out,string,strlen(string));
+
+
   printf("\npendDirs:\n");
   imprimePilaString(pendDirs);
   printf("\nansBlocks:\n");
   li_print(ansBlocks);
   printf("\nansDirs:\n");
   LSprint(ansDirs);
-  
+
   /* LIBERACION DE MEMORIA USADA Y CIERRE DE FICHEROS ABIERTOS*/
   cleanPila(pendDirs);
   li_liberar(ansBlocks);
@@ -240,7 +243,7 @@ int main (int argc, char **argv) {
   if (out != 1) {
     close(out);
   }
-  
+
   printf("\nDespues de liberar:\n");
   printf("\n\npendDirs:\n");
   imprimePilaString(pendDirs);
