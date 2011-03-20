@@ -12,6 +12,8 @@
  * Descripción: Librería con funciones útiles miscelaneas.
  */
 
+#include "misc.h"
+
 #ifndef STD
 #define STD
 #include <stdio.h>
@@ -22,7 +24,6 @@
 #define TRUE 1
 #endif
 
-#include "misc.h"
 
 int strIsUL(char *str) {
   char *p = str;
@@ -40,6 +41,11 @@ int strIsUL(char *str) {
     return FALSE;
   }
   return TRUE;
+}
+
+void ordena(char **a){
+	printf("tara\n");
+	mergeSort2(a, 0, (sizeof(a)/sizeof(char)));
 }
 
 
@@ -94,10 +100,6 @@ void mergeSort2(char **a, int a1, int a2){
 	merge2(a, a1, a2);
 }
 
-void ordena(char **a){
-	printf("tara\n");
-	//mergeSort2(a, 0, (sizeof(a)/sizeof(char)));
-}
 
 
 

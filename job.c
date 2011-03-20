@@ -16,10 +16,6 @@
 #include "almacenamiento.h"
 #endif
 
-#ifndef MSC
-#define MSC
-#include "misc.h"
-#endif
 
 #include "job.h"
 
@@ -29,17 +25,25 @@ int main(int argc, char **argv){
 ListaStr *cosas = newListaStr();
 addLS(cosas, "casa");
 addLS(cosas, "carro");
-addLS(cosas, "comadreja");
+addLS(cosas,  "comadreja");
 addLS(cosas, "tarita");
-addLS(cosas, "anormal");
+//addLS(cosas, "anormal");
 //LSprint(cosas);
 char **cosillas = LSToArray(cosas);
 
 int i ;
+printf("%d\n", (sizeof(cosillas)));
 for (i = 0; i < 5; i++){
 	printf("%s\n",cosillas[i]);
+	fflush(stdout);
 }
-ordena(cosillas);
+//ordena(cosillas);
+printf("ordenado\n\n");
+
+for (i = 0; i < (sizeof(cosillas)/sizeof(char *)); i++){
+	printf("%s\n",cosillas[i]);
+	fflush(stdout);
+}
 
 
 //printf("tamanooooooooooooooooooooooooooooooooooo = %d", sizeof(a) / sizeof(int));
