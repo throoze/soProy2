@@ -100,19 +100,3 @@ void mergeSort2(char **a, int a1, int a2){
 	merge2(a, a1, a2);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

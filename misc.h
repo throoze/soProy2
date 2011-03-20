@@ -48,5 +48,3 @@ void merge2(char **a, int a1, int a2);
  */
 void mergeSort2(char **a, int a1, int a2);
 
-
-
