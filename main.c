@@ -27,6 +27,16 @@
 #include <limits.h>
 #endif
 
+#ifndef DIRE
+#define DIRE
+#include <dirent.h>
+#endif
+
+#ifndef USEPROC
+#define USEPROC
+#include <unistd.h>
+#endif
+
 #ifndef FCNTL
 #define FCNTL
 #include <fcntl.h>
@@ -35,11 +45,6 @@
 #ifndef TYPE
 #define TYPE
 #include <sys/types.h>
-#endif
-
-#ifndef DIRE
-#define DIRE
-#include <dirent.h>
 #endif
 
 #ifndef STATS
@@ -55,6 +60,12 @@
 #ifndef MSC
 #define MSC
 #include "misc.h"
+#endif
+
+#ifndef RWPIPE
+#define RWPIPE
+#define READ 0
+#define WRITE 1
 #endif
 
 #ifndef USO
@@ -168,6 +179,16 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
   *numDirs = *numDirs + 1;
 }
 
+int freeJob(int busyJobs[], int nc){
+  register int i;
+  for (i = 0; i < nc; i++) {
+    if (busyJobs[i] == FALSE) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 int main (int argc, char **argv) {
   /* Procesamiento de la entrada por linea de comandos */
   if (argc > 6) {
@@ -211,14 +232,53 @@ int main (int argc, char **argv) {
   int numRegFiles = 0;                    // Contador de archivos regulares.
   int numDirs = 0;                        // Contador de directorios explorados.
   int totalBlocks = 0;                    // Contador de bloques.
+  pid_t jobs[nc];                         // Contenedor de los pid's de los 
+                                          // procesos hijos.
+  int busyJobs[nc];                       // Indicador de trabajos (procesos) 
+                                          // ocupados.  
+  int numBusy = 0;                        // Numero de trabajos ocupados.
+  int pipesR[nc][2];                      // Contenedor de los pipes que van a
+                                          // LEER de los procesos hijos.
+  int pipesW[nc][2];                      // Contenedor de los pipes que van a
+                                          // ESCRIBIR en los procesos hijos.
+  register int i;                         // Contador para los ciclos.
+  for (i = 0; i < nc; i++) {
+    busyJobs[i] = FALSE;
+  }
 
   firstPass(startDir,startDirName,pendDirs,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
+
+  /* Crear los pipes para la comunicación entre padre e hijos */
+  for (i = 0; i < nc; i++) {
+    pipe(pipesR[i]);
+    pipe(pipesW[i]);
+  }
+
+  /* Crear los procesos hijos */
+  for (i = 0; i < nc; i++) {
+    if ((jobs[i]=fork())==0){
+      /* redireccion de la entrada al pipe */
+      close(pipesW[i][WRITE]);
+      dup2(pipesW[i][READ],0);
+      close(pipesW[i][READ]);
+      /* redireccion de la salida al pipe */
+      close(pipesR[i][READ]);
+      dup2(pipesR[i][WRITE],1);
+      close(pipesR[i][WRITE]);
+      if (esVaciaPilaString(pendDirs)) {
+        execlp("./job","job",NULL);
+      } else {
+        //char * directorio = (char *) malloc((strlen(pendDirs->head->palabra)+1) * sizeof(char));
+        //directorio = popPilaString(pendDirs);
+        char *directorio = popPilaString(pendDirs);
+        execlp("./job","job",directorio,NULL);
+      }
+    }
+  }
 
 
   /* COSAS QUE FALTAN: */
   ///////////////////////
-  /* -CREAR LOS HIJOS */
-  /* -CREAR LOS PIPES */
   /* -COORDINAR LA ASIGNACION DE TRABAJOS */
   /* -PASAR LAS LISTAS A ARREGLOS */
   /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
