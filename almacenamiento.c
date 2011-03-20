@@ -56,7 +56,8 @@ PilaString *newPilaString() {
 
 void pushPilaString(PilaString *pila, char* elem) {
   StackString *nueva  = newStackString();
-  strcpy(nueva->palabra , elem);
+  // strcpy(nueva->palabra , elem);
+  nueva->palabra = elem;
   nueva->sig = pila->head;
   pila->head = nueva;
   pila->size++;  

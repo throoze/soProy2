@@ -30,3 +30,23 @@
  *          unsigned long; y 0 en caso contrario.
  */
 int strIsUL(char *str);
+
+
+/**
+ *
+ *
+ *
+ */
+void merge2(char **a, int a1, int a2);
+
+/**
+ * Llamada al ordenamiento por mezcla de dos arreglos de igual tamano
+ * Parametros: a y b  son los arreglos a ordenar, basados en el criterio del 
+ * arreglo a
+ * sin retorno
+ */
+void mergeSort2(char **a, int a1, int a2);
+
+
+
+void ordena(char **a);
