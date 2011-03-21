@@ -39,7 +39,7 @@ void manejadorLectura(){
   read(0, bitsEnt, 12);
   kill(padre, SIGUSR2);
   read(0, principal, bitsEnt);
-
+  printf("Leyendo %s 2\n",principal);
   DIR *dirp;
   struct dirent *direntp;
   struct stat statbuf;
@@ -102,38 +102,12 @@ void main(int argc, char **argv){
   padre = getppid();
   signal(SIGUSR1 ,manejadorLectura);
   signal(SIGUSR2 ,manejadorSilencio);
-	signal(SIGCONT,manejadorMuerte);
-
-  ListaStr *prueba = newListaStr();
-  addLS(prueba,"conejo");
-  addLS(prueba,"gatubela");
-  addLS(prueba,"arbol");
-  addLS(prueba,"reticulo");
-  addLS(prueba,"acorde");
-  addLS(prueba,"distante");
-  //LSprint(prueba);
-  char **prueba2 = LSToArray(prueba);
-
-  printf("\n \n");
-  
-  int it;
-  for(it = 0; it < 6; it++){
-    printf("%s\n", prueba2[it]);
-    fflush(stdout);
+  signal(SIGCONT,manejadorMuerte);
+  write("Soy el hijo\n");
+  while (TRUE){
+    pause();
+    printf("esto pasa luego de q termina\n");
   }
-    ordena(prueba2);
-    printf("ya ordenooooooooooooooo\n\n");
-    it = 0;
-    //for(it = 0; it < 6; it++){
-      printf("%s\n", prueba2[0]);
-      fflush(stdout);
-      //}
-
-
-while (TRUE){
-  pause();
-  printf("esto pasa luego de q termina\n");
- }
 }
 
 

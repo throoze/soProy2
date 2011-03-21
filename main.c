@@ -117,7 +117,6 @@ void sigusr1Handler() {
   /* Recibo el indice del hijo con quien estoy hablando */
   read(0,buffer,12);
   numChild = (int) strtoul(buffer,&buffer,10);
-  printf("Recibo el indice del hijo con quien estoy hablando: %d", numChild);
   
   /* Le digo a los demas que no me hablen */
   register int i;
@@ -130,7 +129,6 @@ void sigusr1Handler() {
   kill(jobs[numChild],SIGUSR1);
   read(0,buffer,12);
   numDirecs = (int) strtoul(buffer,&buffer,10);
-  printf("Recibo el numero de directorios que estan en la respuesta: %d",numDirecs);
   
   for (i = 0; i < numDirecs; i++) {
     kill(jobs[numChild],SIGUSR1);
@@ -139,20 +137,17 @@ void sigusr1Handler() {
     kill(jobs[numChild],SIGUSR1);
     read(0,buffer,numBytes);
     pushPilaString(pendDirs,buffer);
-    imprimePilaString(pendDirs);
   }
   
   /* Recibo el numero de archivos regulares */
   kill(jobs[numChild],SIGUSR1);
   read(0,buffer,12);
   numRegs = (int) strtoul(buffer,&buffer,10);
-  printf("Recibo el numero de archivos regulares: %d",numRegs);
   
   /* Recibo el tamaño de los archivos regulares */
   kill(jobs[numChild],SIGUSR1);
   read(0,buffer,12);
   tamRegs = (int) strtoul(buffer,&buffer,10);
-  printf("Recibo el tamaño de los archivos regulares: %d", tamRegs);
 
   /* Salvo los datos recibidos */
   numDirs += numDirecs;
@@ -161,9 +156,7 @@ void sigusr1Handler() {
   numBusy--;
   numLazy++;
   addLS(ansDirs,dirAsig[numChild]);
-  LSprint(ansDirs);
   add(ansBlocks,tamRegs);
-  li_print(ansBlocks);
   dirAsig[numChild] = NULL;
   
 
@@ -364,17 +357,17 @@ int main (int argc, char **argv) {
       close(pipeR[READ]);
       dup2(pipeR[WRITE],1);
       close(pipeR[WRITE]);
+
       char numProc[12];
       sprintf(numProc,"%d",i);
       execlp("./job","job",numProc,NULL);
     }
   }
-
+  
   /* Instalo el manejador para SIGUSR1 y SIGUSR2 */
   signal(SIGUSR1, sigusr1Handler);
   signal(SIGUSR2,SIG_IGN);
   
-
   /* Asigna las tareas: */
   i = 0;
   while (numLazy > 0 && i < nc){
@@ -394,12 +387,11 @@ int main (int argc, char **argv) {
     i++;
   }
 
-
   /* Espero las respuestas de los hijos */
   while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
     pause();
   }
-  
+
   for (i = 0; i < nc; i++) {
     kill(jobs[i],SIGCONT);
   }
