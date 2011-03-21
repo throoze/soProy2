@@ -100,6 +100,12 @@ void asignarTrabajos(){
   }
 }
 
+void childHandler() {
+    int childPid, childStatus;
+    childPid = wait(&childStatus);
+}
+
+
 void sigusr1Handler() {
   int numChild;
   int numBytes;
@@ -111,6 +117,7 @@ void sigusr1Handler() {
   /* Recibo el indice del hijo con quien estoy hablando */
   read(0,buffer,12);
   numChild = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el indice del hijo con quien estoy hablando: %d", numChild);
   
   /* Le digo a los demas que no me hablen */
   register int i;
@@ -123,7 +130,8 @@ void sigusr1Handler() {
   kill(jobs[numChild],SIGUSR1);
   read(0,buffer,12);
   numDirecs = (int) strtoul(buffer,&buffer,10);
-
+  printf("Recibo el numero de directorios que estan en la respuesta: %d",numDirecs);
+  
   for (i = 0; i < numDirecs; i++) {
     kill(jobs[numChild],SIGUSR1);
     read(0,buffer,12);
@@ -131,18 +139,20 @@ void sigusr1Handler() {
     kill(jobs[numChild],SIGUSR1);
     read(0,buffer,numBytes);
     pushPilaString(pendDirs,buffer);
-    
+    imprimePilaString(pendDirs);
   }
   
   /* Recibo el numero de archivos regulares */
   kill(jobs[numChild],SIGUSR1);
   read(0,buffer,12);
   numRegs = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el numero de archivos regulares: %d",numRegs);
   
   /* Recibo el tamaño de los archivos regulares */
   kill(jobs[numChild],SIGUSR1);
   read(0,buffer,12);
   tamRegs = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el tamaño de los archivos regulares: %d", tamRegs);
 
   /* Salvo los datos recibidos */
   numDirs += numDirecs;
@@ -151,7 +161,9 @@ void sigusr1Handler() {
   numBusy--;
   numLazy++;
   addLS(ansDirs,dirAsig[numChild]);
+  LSprint(ansDirs);
   add(ansBlocks,tamRegs);
+  li_print(ansBlocks);
   dirAsig[numChild] = NULL;
   
 
@@ -251,13 +263,10 @@ void firstPass(DIR *startDir,char *startDirName,ListaStr *ansDirs,ListaInt *ansB
         sprintf(fileName,"%s/", fileName);
         pushPilaString(pendDirs,fileName);
         *numDirs = *numDirs + 1;
-        //printf("El archivo \"%s\" Es directorio y tiene %d bytes y %d links\n",fileName, (int) statBuf.st_size,(int) statBuf.st_nlink);
       } else if (S_ISREG(mode)) {
         /* Lo contabilizo y contabilizo su peso*/
         *numRegFiles = *numRegFiles + 1;
         *totalBlocks = *totalBlocks + ((((int) statBuf.st_size)/((int) statBuf.st_blksize)) + ((((int) statBuf.st_size)%((int) statBuf.st_blksize)) != 0 ? 1 : 0));
-        //*totalBlocks = *totalBlocks + ((int) statBuf.st_blocks);
-        //printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
       }
     }
   }
@@ -392,7 +401,7 @@ int main (int argc, char **argv) {
   }
   
   for (i = 0; i < nc; i++) {
-    kill(jobs[i],SIGKILL);
+    kill(jobs[i],SIGCONT);
   }
 
   
