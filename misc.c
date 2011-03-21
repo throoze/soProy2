@@ -98,19 +98,3 @@ void ordena(char **a){
 	printf("tara\n");
 	//mergeSort2(a, 0, (sizeof(a)/sizeof(char)));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
