@@ -31,6 +31,7 @@
  */
 int strIsUL(char *str);
 
+void ordena(char **a);
 
 /**
  *
@@ -47,8 +48,3 @@ void merge2(char **a, int a1, int a2);
  */
 void mergeSort2(char **a, int a1, int a2);
 
-
-/**
- *
- */
-void ordena(char **a);

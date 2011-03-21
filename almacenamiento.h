@@ -366,6 +366,8 @@ char *getLastLS(ListaStr *list);
  */
 int LSLiberar(ListaStr *lista);
 
+
+
 /*FIN Funciones y Procedimientos referentes al tipo ListaStr*/
 
 /*----------------------------------------------------------------------------*/

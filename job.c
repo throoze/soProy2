@@ -16,41 +16,33 @@
 #include "almacenamiento.h"
 #endif
 
-#ifndef MSC
-#define MSC
-#include "misc.h"
-#endif
 
 #include "job.h"
+#include  <signal.h>
 
+int numero;
+int padre;
+int hablar;
 
-int main(int argc, char **argv){
-
-ListaStr *cosas = newListaStr();
-addLS(cosas, "casa");
-addLS(cosas, "carro");
-addLS(cosas, "comadreja");
-addLS(cosas, "tarita");
-addLS(cosas, "anormal");
-//LSprint(cosas);
-char **cosillas = LSToArray(cosas);
-
-int i ;
-for (i = 0; i < 5; i++){
-	printf("%s\n",cosillas[i]);
+void manejadorSilencio(){
+	hablar = (hablar + 1)/2;
 }
-ordena(cosillas);
 
+void manejadorLectura(){	
+	printf("leyendo***********\n");
+ char *principal =  (char *) malloc(sizeof(char *));
+	int bitsEnt;
+	read(0, bitsEnt, 12);
+	kill(padre, SIGUSR1);
+	read(0, principal, bitsEnt);
 
-//printf("tamanooooooooooooooooooooooooooooooooooo = %d", sizeof(a) / sizeof(int));
-  DIR *dirp;
+DIR *dirp;
   struct dirent *direntp;
   struct stat statbuf;
-  int suma = 0;
+	mode_t mode;
 
-//  printf("%s\n",argv[1]);
-  if ((dirp = opendir(argv[1]))==NULL) {
-    fprintf(stderr,"No se puede abrir el directorio %s: %s\n", argv[1],
+  if ((dirp = opendir(principal))==NULL) {
+    fprintf(stderr,"No se puede abrir el directorio %s: %s\n", principal,
   	    strerror(errno));
     exit(1);
   }
@@ -60,28 +52,43 @@ ordena(cosillas);
   PilaString *directorios = newPilaString();
  
   while ((direntp=readdir(dirp)) != NULL) {
-    char *aux = (char *) malloc((strlen(argv[1]) + strlen(direntp->d_name) + 2) * sizeof(char));
+    char *aux = (char *) malloc((strlen(principal) + strlen(direntp->d_name) + 2) * sizeof(char));
     fflush(stdout);
-    sprintf(aux, "%s/%s", argv[1] , direntp->d_name);
+    sprintf(aux, "%s/%s", principal , direntp->d_name);
     if (stat(aux, &statbuf) == -1) {
       fprintf(stderr, " No se pudo aplicar stat sobre el archivo %s: %s \n", aux, strerror(errno));
       exit(1);
     }
-    if (statbuf.st_mode & S_IFDIR) {
-    //  printf("%s es un directorio\n", aux);
-	//	printf("taraaaaaaaaaa\n");
-//		fflush(stdout);
-      pushPilaString(directorios, aux);
- //     imprimePilaString(directorios);
-			free(aux);
-  }
- //   else
- //         printf("%s no es un directorio\n", aux);
- // }
-		}
+		mode = statbuf.st_mode;
+    if ( S_ISDIR(mode)) {
+    	pushPilaString(directorios, aux);
+			
+ 		 } else  if (S_ISREG(mode)) {
+				numArchi++;
+				sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
+ 		}
+	free(aux);
+	}
   closedir(dirp);
-//  imprimePilaString(directorios);
-  exit(0);
+	printf("terminoooooooo-------\n");
+	while(!hablar){		
+		pause();
+	}
+	kill(padre,SIGUSR1);
+	pause();
+	
+}
+
+void main(int argc, char **argv){
+
+	numero = atoi(argv[1]);
+	padre = getppid();
+	signal(SIGUSR1 ,manejadorLectura);
+	signal(SIGUSR2 ,manejadorSilencio);
+	while (TRUE){
+		pause();
+		printf("esto pasa luego de q termina\n");
+	}
 }
 
 
