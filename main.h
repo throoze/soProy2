@@ -33,6 +33,11 @@
 #include <dirent.h>
 #endif
 
+#ifndef USEPROC
+#define USEPROC
+#include <unistd.h>
+#endif
+
 #ifndef FCNTL
 #define FCNTL
 #include <fcntl.h>
@@ -56,6 +61,17 @@
 #ifndef MSC
 #define MSC
 #include "misc.h"
+#endif
+
+#ifndef RWPIPE
+#define RWPIPE
+#define READ 0
+#define WRITE 1
+#endif
+
+#ifndef SGNL
+#define SGNL
+#include <signal.h>
 #endif
 
 #ifndef USO
@@ -104,3 +120,13 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
  * totalBlocks: Numero total de bloques contabilizados hasta el momento.
  */
 void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *ansDirs,ListaInt *ansBlocks,int *numRegFiles,int *numDirs, int *totalBlocks);
+
+/**
+ * Devuelve el índice del primer proceso libre, ó -1 en caso de que todos los
+ * procesos estén ocupados.
+ * busyJobs: arreglo que indica el estado de los procesos.
+ * nc: numero de procesos que se están manejando.
+ * retorna: el índice del primer proceso libre; -1 en caso de que todos los 
+ *          procesos estén ocupados.
+ */
+int lazyJob(int busyJobs[], int nc);

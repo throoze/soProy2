@@ -39,7 +39,7 @@
 typedef struct stack StackString;
 
 struct stack {
-  char palabra[100];
+  char *palabra ;
   StackString *sig;
 };
 
@@ -365,6 +365,8 @@ char *getLastLS(ListaStr *list);
  * retorna: 0 si se completó la limpieza con éxito, 1 en caso contrario.
  */
 int LSLiberar(ListaStr *lista);
+
+
 
 /*FIN Funciones y Procedimientos referentes al tipo ListaStr*/
 
