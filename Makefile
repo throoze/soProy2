@@ -15,8 +15,8 @@ EXE2 = job
 LIBS = almacenamiento.h misc.h
 LIBO = almacenamiento.o misc.o
 
-LIBSJ = almacenamiento.h
-LIBOJ = almacenamiento.o
+LIBSJ = almacenamiento.h misc.h
+LIBOJ = almacenamiento.o misc.o
 
 OBJ1 = main.o ${LIBO}
 OBJ2 = job.o ${LIBOJ}
