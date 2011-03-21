@@ -299,8 +299,9 @@ int main (int argc, char **argv) {
       kill(jobs[child],SIGUSR1);
       char numBytes[12];
       char *directory = popPilaString(pendDirs);
-      sprintf(numBytes,"%d",sizeof(directory));
-      write(pipeW[WRITE],numBytes);
+      int tam = sizeof(directory);
+      sprintf(numBytes,"%d",tam);
+      write(pipeW[WRITE],numBytes,tam);
       busyJobs[child] = TRUE;
       numBusy++;
       numLazy--;
