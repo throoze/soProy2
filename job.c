@@ -33,7 +33,7 @@ void manejadorLectura(){
  char *principal =  (char *) malloc(sizeof(char *));
 	int bitsEnt;
 	read(0, bitsEnt, 12);
-	kill(padre, SIGUSR1);
+	kill(padre, SIGUSR2);
 	read(0, principal, bitsEnt);
 
 DIR *dirp;
@@ -75,7 +75,15 @@ DIR *dirp;
 		pause();
 	}
 	kill(padre,SIGUSR1);
+	write(numero);
 	pause();
+	write(directorios->size);
+	pause();
+	while (!esVaciaPilaString(directorios)){
+	 char *aux = popPilaString(directorios);
+		write(sizeof(aux));
+		write(aux);
+	}
 	
 }
 
