@@ -82,15 +82,99 @@
 
 #include "main.h"
 
-void sigusr1Handler() {
-    
+void asignarTrabajos(){
+  while (numLazy > 0 && !esVaciaPilaString(pendDirs)) {
+    int child = lazyJob(busyJobs,nc);
+    kill(jobs[child],SIGUSR1);
+    char numBytes[12];
+    char *directory = popPilaString(pendDirs);
+    int tam = strlen(directory);
+    sprintf(numBytes,"%d",tam);
+    write(pipeW[WRITE],numBytes,strlen(numBytes));
+    pause();
+    write(pipeW[WRITE],directory,strlen(directory));
+    dirAsig[child] = directory;
+    busyJobs[child] = TRUE;
+    numBusy++;
+    numLazy--;
+  }
 }
 
-void sigusr2Handler() {
+void childHandler() {
     int childPid, childStatus;
     childPid = wait(&childStatus);
-    //printf("El hijo %d termino en menos de %d segundos...\n",childPid,delay);
-    exit(0);
+}
+
+
+void sigusr1Handler() {
+  int numChild;
+  int numBytes;
+  int numDirecs;
+  int numRegs;
+  int tamRegs;
+  char *buffer;
+  
+  /* Recibo el indice del hijo con quien estoy hablando */
+  read(0,buffer,12);
+  numChild = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el indice del hijo con quien estoy hablando: %d", numChild);
+  
+  /* Le digo a los demas que no me hablen */
+  register int i;
+  for (i = 0; i < nc; i++) {
+    if (i != numChild)
+      kill(jobs[i],SIGUSR2);
+  }
+  
+  /* Recibo el numero de directorios que estan en la respuesta */
+  kill(jobs[numChild],SIGUSR1);
+  read(0,buffer,12);
+  numDirecs = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el numero de directorios que estan en la respuesta: %d",numDirecs);
+  
+  for (i = 0; i < numDirecs; i++) {
+    kill(jobs[numChild],SIGUSR1);
+    read(0,buffer,12);
+    numBytes = (int) strtoul(buffer,&buffer,10);
+    kill(jobs[numChild],SIGUSR1);
+    read(0,buffer,numBytes);
+    pushPilaString(pendDirs,buffer);
+    imprimePilaString(pendDirs);
+  }
+  
+  /* Recibo el numero de archivos regulares */
+  kill(jobs[numChild],SIGUSR1);
+  read(0,buffer,12);
+  numRegs = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el numero de archivos regulares: %d",numRegs);
+  
+  /* Recibo el tamaño de los archivos regulares */
+  kill(jobs[numChild],SIGUSR1);
+  read(0,buffer,12);
+  tamRegs = (int) strtoul(buffer,&buffer,10);
+  printf("Recibo el tamaño de los archivos regulares: %d", tamRegs);
+
+  /* Salvo los datos recibidos */
+  numDirs += numDirecs;
+  numRegFiles += numRegs;
+  busyJobs[numChild] = FALSE;
+  numBusy--;
+  numLazy++;
+  addLS(ansDirs,dirAsig[numChild]);
+  LSprint(ansDirs);
+  add(ansBlocks,tamRegs);
+  li_print(ansBlocks);
+  dirAsig[numChild] = NULL;
+  
+
+  /* Le digo a los demas que ya me pueden hablar */
+  for (i = 0; i < nc; i++) {
+    if (i != numChild)
+      kill(jobs[i],SIGUSR2);
+  }
+
+  /* Asigno los trabajos pendientes */
+  asignarTrabajos();
 }
 
 void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,char **startDirName, int *out){
@@ -152,7 +236,7 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
   }
 }
 
-void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *ansDirs,ListaInt *ansBlocks,int *numRegFiles,int *numDirs, int *totalBlocks){
+void firstPass(DIR *startDir,char *startDirName,ListaStr *ansDirs,ListaInt *ansBlocks,int *numRegFiles,int *numDirs, int *totalBlocks){
   struct dirent *direntp;
   while ((direntp=readdir(startDir)) != NULL) {
     if (strcmp(direntp->d_name,".") != 0 && strcmp(direntp->d_name,"..") != 0) {
@@ -179,17 +263,13 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
         sprintf(fileName,"%s/", fileName);
         pushPilaString(pendDirs,fileName);
         *numDirs = *numDirs + 1;
-        //printf("El archivo \"%s\" Es directorio y tiene %d bytes y %d links\n",fileName, (int) statBuf.st_size,(int) statBuf.st_nlink);
       } else if (S_ISREG(mode)) {
         /* Lo contabilizo y contabilizo su peso*/
         *numRegFiles = *numRegFiles + 1;
-        *totalBlocks = *totalBlocks + (((int) statBuf.st_size)/((int) statBuf.st_blksize));
-        //*totalBlocks = *totalBlocks + ((int) statBuf.st_blocks);
-        //printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
+        *totalBlocks = *totalBlocks + ((((int) statBuf.st_size)/((int) statBuf.st_blksize)) + ((((int) statBuf.st_size)%((int) statBuf.st_blksize)) != 0 ? 1 : 0));
       }
     }
   }
-	//printf("*****************%d\n",*totalBlocks);
   addLS(ansDirs, startDirName);
   add(ansBlocks, *totalBlocks);
   *numDirs = *numDirs + 1;
@@ -214,7 +294,7 @@ int main (int argc, char **argv) {
   }
 
   /* Valores por default */
-  unsigned long nc = 1;     // Nivel de concurrencia
+  nc = 1;                   // Nivel de concurrencia
   DIR *startDir;            // Directorio inicial
   char *startDirName = "./";
   if ( (startDir = opendir(startDirName)) == NULL) {
@@ -231,39 +311,38 @@ int main (int argc, char **argv) {
     }
   }
   /* Fin del Procesamiento de la entrada por linea de comandos */
-
-  printf("El nombre del directorio de inicio es: %s\n", startDirName);
+  
+  jobs = (pid_t *) malloc(nc * sizeof(pid_t));
 
   /* Otras variables e inicializaciones */
-  PilaString *pendDirs = newPilaString(); // Pila que contiene los nombres de
-                                          // los directorios pendientes por
-                                          // revisar.
-  ListaStr *ansDirs = newListaStr();      // Pila que contiene los nombres de
-                                          // Los directorios que se han explo-
-                                          // rado.
-  ListaInt *ansBlocks = newListaInt();    // Contiene la cantidad de bloques
-                                          // asociados a los archivos conta-
-                                          // bilizados por la posición que o-
-                                          // cupan
-  int numRegFiles = 0;                    // Contador de archivos regulares.
-  int numDirs = 0;                        // Contador de directorios explorados.
-  int totalBlocks = 0;                    // Contador de bloques.
-  pid_t jobs[nc];                         // Contenedor de los pid's de los 
-                                          // procesos hijos.
-  int busyJobs[nc];                       // Indicador de trabajos (procesos) 
-                                          // ocupados.  
-  int numBusy = 0;                        // Numero de trabajos ocupados.
-  int numLazy = nc;                       // Numero de trabajos desocupados.
-  int pipeR[2];                           // Contenedor del pipes que va a
-                                          // LEER de los procesos hijos.
-  int pipeW[2];                           // Contenedor del pipe que va a
-                                          // ESCRIBIR en los procesos hijos.
-  register int i;                         // Contador para los ciclos.
+  pendDirs = newPilaString(); // Pila que contiene los nombres de
+                              // los directorios pendientes por
+                              // revisar.
+  ansDirs = newListaStr();    // Pila que contiene los nombres de
+                              // Los directorios que se han explo-
+                              // rado.
+  ansBlocks = newListaInt();  // Contiene la cantidad de bloques
+                              // asociados a los archivos conta-
+                              // bilizados por la posición que o-
+                              // cupan
+  int numRegFiles = 0;        // Contador de archivos regulares.
+  int numDirs = 0;            // Contador de directorios explorados.
+  int totalBlocks = 0;        // Contador de bloques.
+                              // ocupados.
+  numBusy = 0;                // Numero de trabajos ocupados.
+  numLazy = nc;               // Numero de trabajos desocupados.
+  int pipeR[2];               // Contenedor del pipes que va a
+                              // LEER de los procesos hijos.
+  register int i;             // Contador para los ciclos.
+
+  dirAsig = (char **) malloc(nc * sizeof(char*)); // Indicador de trabajos (procesos) 
+  busyJobs = (int *) malloc(nc * sizeof(int));    // Indicador de trabajos (procesos) 
   for (i = 0; i < nc; i++) {
     busyJobs[i] = FALSE;
   }
+  
 
-  firstPass(startDir,startDirName,pendDirs,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
+  firstPass(startDir,startDirName,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
 
   /* Crear los pipes para la comunicación entre padre e hijos */
   pipe(pipeR);
@@ -291,42 +370,58 @@ int main (int argc, char **argv) {
     }
   }
 
-  /* Instalo el manejador para SIGUSR2 */
+  /* Instalo el manejador para SIGUSR1 y SIGUSR2 */
+  signal(SIGUSR1, sigusr1Handler);
+  signal(SIGUSR2,SIG_IGN);
+  
 
   /* Asigna las tareas: */
-  while (numLazy > 0){
+  i = 0;
+  while (numLazy > 0 && i < nc){
     if (!esVaciaPilaString(pendDirs)) {
       int child = lazyJob(busyJobs,nc);
       kill(jobs[child],SIGUSR1);
       char numBytes[12];
       char *directory = popPilaString(pendDirs);
-      int tam = sizeof(directory);
+      int tam = strlen(directory);
       sprintf(numBytes,"%d",tam);
       write(pipeW[WRITE],numBytes,tam);
+      dirAsig[child] = directory;
       busyJobs[child] = TRUE;
       numBusy++;
       numLazy--;
-      pause();
     }
+    i++;
   }
 
+
+  /* Espero las respuestas de los hijos */
+  while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
+    pause();
+  }
+  
+  for (i = 0; i < nc; i++) {
+    kill(jobs[i],SIGCONT);
+  }
+
+  
   /* COSAS QUE FALTAN: */
   ///////////////////////
-  /* -COORDINAR LA ASIGNACION DE TRABAJOS */ 
   /* -PASAR LAS LISTAS A ARREGLOS */
   /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
   /* -ESCRIBIR LA SALIDA */
 
-  char string[] = "Wepale!!!! estoy escribiendo fino!!!\n";
-  write(out,string,strlen(string));
+  char **respuestaDirs = LSToArray(ansDirs);
+  int *respuestaBlocks = liToArray(ansBlocks);
 
-
-  printf("\npendDirs:\n");
-  imprimePilaString(pendDirs);
-  printf("\nansBlocks:\n");
-  li_print(ansBlocks);
-  printf("\nansDirs:\n");
-  LSprint(ansDirs);
+  //  ordenar(respuestaDirs,respuestaBlocks,ansDirs->size);
+  
+  /* Escribo la respuesta en la salida */
+  for (i = 0; i > nc; i++) {
+    char *string = (char *) malloc((strlen(respuestaDirs[i]) + 13) * sizeof(char));
+    sprintf(string,"%d\t%s",respuestaBlocks[i],respuestaDirs[i]);
+    write(out,string,strlen(string));
+  }
 
   /* LIBERACION DE MEMORIA USADA Y CIERRE DE FICHEROS ABIERTOS*/
   cleanPila(pendDirs);
@@ -336,14 +431,6 @@ int main (int argc, char **argv) {
   if (out != 1) {
     close(out);
   }
-
-  printf("\nDespues de liberar:\n");
-  printf("\n\npendDirs:\n");
-  imprimePilaString(pendDirs);
-  printf("\n\nansBlocks:\n");
-  li_print(ansBlocks);
-  printf("\n\nansDirs:\n");
-  LSprint(ansDirs);
 
   /* SUMARIO */
   printf("\n\nSUMARIO:\n\n\tNumero de procesos creados:\t\t\t%lu\n\tNumero de directorios examinados:\t\t%d\n\tNumero de archivos regulares contabilizados:\t%d\n", nc,numDirs,numRegFiles);

@@ -82,6 +82,29 @@
 #endif
 
 
+/* Variables globales: */
+unsigned long nc = 1; // Nivel de concurrencia
+pid_t *jobs;          // Contenedor de los pid's de los 
+                      // procesos hijos.
+PilaString *pendDirs; // Pila que contiene los nombres de
+                      // los directorios pendientes por
+                      // revisar.
+ListaStr *ansDirs;    // Pila que contiene los nombres de
+                      // Los directorios que se han explo-
+                      // rado.
+ListaInt *ansBlocks;  // Contiene la cantidad de bloques
+                      // asociados a los archivos conta-
+                      // bilizados por la posición que o-
+                      // cupan.
+int numRegFiles;      // Contador de archivos regulares.
+int numDirs;          // Contador de directorios explorados.
+int *busyJobs;        // Indicador de trabajos (procesos) 
+                      // ocupados.
+char **dirAsig;       // Directorios asignados a cada hijo.x
+int  numBusy;         // Numero de trabajos ocupados.
+int  numLazy;         // Numero de trabajos desocupados.
+int pipeW[2];         // Contenedor del pipe que va a
+                      // ESCRIBIR en los procesos hijos.
 /**
  * Procesa los argumentos entrados por linea de comandos.
  * Recibe argumentos apuntadores para que los argumentos sean pasados
@@ -119,7 +142,7 @@ void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,ch
  * numDirs: Numero de directorios contabilizados hasta el momento.
  * totalBlocks: Numero total de bloques contabilizados hasta el momento.
  */
-void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *ansDirs,ListaInt *ansBlocks,int *numRegFiles,int *numDirs, int *totalBlocks);
+void firstPass(DIR *startDir,char *startDirName,ListaStr *ansDirs,ListaInt *ansBlocks,int *numRegFiles,int *numDirs, int *totalBlocks);
 
 /**
  * Devuelve el índice del primer proceso libre, ó -1 en caso de que todos los
