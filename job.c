@@ -28,6 +28,10 @@ void manejadorSilencio(){
   hablar = (hablar + 1)/2;
 }
 
+void manejadorMuerte(){
+	exit(0);
+}
+
 void manejadorLectura(){	
   printf("leyendo***********\n");
   char *principal =  (char *) malloc(sizeof(char *));
@@ -98,6 +102,7 @@ void main(int argc, char **argv){
   padre = getppid();
   signal(SIGUSR1 ,manejadorLectura);
   signal(SIGUSR2 ,manejadorSilencio);
+	signal(SIGCONT,manejadorMuerte);
 
   ListaStr *prueba = newListaStr();
   addLS(prueba,"conejo");
@@ -106,16 +111,29 @@ void main(int argc, char **argv){
   addLS(prueba,"reticulo");
   addLS(prueba,"acorde");
   addLS(prueba,"distante");
-  LSprint(prueba);
-  //  char **prueba2 = 
+  //LSprint(prueba);
+  char **prueba2 = LSToArray(prueba);
+
+  printf("\n \n");
   
-
-
-
-  while (TRUE){
-    pause();
-    printf("esto pasa luego de q termina\n");
+  int it;
+  for(it = 0; it < 6; it++){
+    printf("%s\n", prueba2[it]);
+    fflush(stdout);
   }
+    ordena(prueba2);
+    printf("ya ordenooooooooooooooo\n\n");
+    it = 0;
+    //for(it = 0; it < 6; it++){
+      printf("%s\n", prueba2[0]);
+      fflush(stdout);
+      //}
+
+
+while (TRUE){
+  pause();
+  printf("esto pasa luego de q termina\n");
+ }
 }
 
 

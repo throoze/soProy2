@@ -77,7 +77,9 @@ void merge2(char **a, int a1, int a2){
     }
   }
   aux = 0;
+  //  printf("%d %d /n", aux, tam);
   while (aux < tam){
+    //   printf(nuevo[aux]);
     a[a1 + aux] = nuevo[aux];
     aux++;
   }
@@ -88,7 +90,7 @@ void merge2(char **a, int a1, int a2){
 
 
 void mergeSort2(char **a, int a1, int a2) {
-  printf("En mergeSort2\n");
+  printf("En mergeSort2, indices = %d %d\n",a1, a2);
   int tam = a2 - a1;
   if (tam < 1) return;
   int med = a1 + (tam/2);
@@ -98,6 +100,7 @@ void mergeSort2(char **a, int a1, int a2) {
 }
 
 void ordena(char **a){
+  printf("%d\n", (sizeof(a)));
   printf("tara en ordena! =)\n");
   mergeSort2(a, 0, (sizeof(a)/sizeof(char *)));
 }
