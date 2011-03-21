@@ -45,7 +45,7 @@ int strIsUL(char *str) {
 
 void ordena(char **a){
 	printf("tara\n");
-	mergeSort2(a, 0, (sizeof(a)/sizeof(char)));
+	mergeSort2(a, 0, (sizeof(a)/sizeof(char *)));
 }
 
 
@@ -64,7 +64,7 @@ void merge2(char **a, int a1, int a2){
 					aux2++;
 				}
 		} else if((a2 - aux2) == 0){
-			while((a2 - aux2) > 0){
+			while((a1 - aux1) > 0){
 					nuevo[aux] = a[aux1];
 					aux++;
 					aux1++;
@@ -93,7 +93,7 @@ void merge2(char **a, int a1, int a2){
 
 void mergeSort2(char **a, int a1, int a2){
 	int tam = a2 - a1;
-	if (tam <= 1) return;
+	if (tam < 1) return;
 	int med = a1 + (tam/2);
 	mergeSort2(a, a1, med);
 	mergeSort2(a, med + 1, a2);
