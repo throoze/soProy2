@@ -89,7 +89,7 @@ void sigusr1Handler() {
 void sigusr2Handler() {
     int childPid, childStatus;
     childPid = wait(&childStatus);
-    printf("El hijo %d termino en menos de %d segundos...\n",childPid,delay);
+    //printf("El hijo %d termino en menos de %d segundos...\n",childPid,delay);
     exit(0);
 }
 

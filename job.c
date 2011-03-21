@@ -25,21 +25,21 @@ int padre;
 int hablar;
 
 void manejadorSilencio(){
-	hablar = (hablar + 1)/2;
+  hablar = (hablar + 1)/2;
 }
 
 void manejadorLectura(){	
-	printf("leyendo***********\n");
- char *principal =  (char *) malloc(sizeof(char *));
-	int bitsEnt;
-	read(0, bitsEnt, 12);
-	kill(padre, SIGUSR2);
-	read(0, principal, bitsEnt);
+  printf("leyendo***********\n");
+  char *principal =  (char *) malloc(sizeof(char *));
+  int bitsEnt;
+  read(0, bitsEnt, 12);
+  kill(padre, SIGUSR2);
+  read(0, principal, bitsEnt);
 
-DIR *dirp;
+  DIR *dirp;
   struct dirent *direntp;
   struct stat statbuf;
-	mode_t mode;
+  mode_t mode;
 
   if ((dirp = opendir(principal))==NULL) {
     fprintf(stderr,"No se puede abrir el directorio %s: %s\n", principal,
@@ -59,44 +59,63 @@ DIR *dirp;
       fprintf(stderr, " No se pudo aplicar stat sobre el archivo %s: %s \n", aux, strerror(errno));
       exit(1);
     }
-		mode = statbuf.st_mode;
+    mode = statbuf.st_mode;
     if ( S_ISDIR(mode)) {
-    	pushPilaString(directorios, aux);
+      pushPilaString(directorios, aux);
 			
- 		 } else  if (S_ISREG(mode)) {
-				numArchi++;
-				sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
- 		}
-	free(aux);
-	}
+    } else  if (S_ISREG(mode)) {
+      numArchi++;
+      sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
+    }
+    free(aux);
+  }
   closedir(dirp);
-	printf("terminoooooooo-------\n");
-	while(!hablar){		
-		pause();
-	}
-	kill(padre,SIGUSR1);
-	write(numero);
-	pause();
-	write(directorios->size);
-	pause();
-	while (!esVaciaPilaString(directorios)){
-	 char *aux = popPilaString(directorios);
-		write(sizeof(aux));
-		write(aux);
-	}
+  printf("terminoooooooo-------\n");
+  while(!hablar){		
+    pause();
+  }
+  kill(padre,SIGUSR1);
+  write(numero);
+  pause();
+  write(directorios->size);
+  pause();
+  while (!esVaciaPilaString(directorios)){
+    char *aux = popPilaString(directorios);
+    write(sizeof(aux));
+    pause();
+    write(aux);
+  }
+  pause();
+  write(numArchi);
+  pause();
+  write(sumTam);
 	
 }
 
 void main(int argc, char **argv){
 
-	numero = atoi(argv[1]);
-	padre = getppid();
-	signal(SIGUSR1 ,manejadorLectura);
-	signal(SIGUSR2 ,manejadorSilencio);
-	while (TRUE){
-		pause();
-		printf("esto pasa luego de q termina\n");
-	}
+  numero = atoi(argv[1]);
+  padre = getppid();
+  signal(SIGUSR1 ,manejadorLectura);
+  signal(SIGUSR2 ,manejadorSilencio);
+
+  ListaStr *prueba = newListaStr();
+  addLS(prueba,"conejo");
+  addLS(prueba,"gatubela");
+  addLS(prueba,"arbol");
+  addLS(prueba,"reticulo");
+  addLS(prueba,"acorde");
+  addLS(prueba,"distante");
+  LSprint(prueba);
+  //  char **prueba2 = 
+  
+
+
+
+  while (TRUE){
+    pause();
+    printf("esto pasa luego de q termina\n");
+  }
 }
 
 
