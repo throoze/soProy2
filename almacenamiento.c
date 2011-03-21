@@ -162,19 +162,19 @@ void delete(ListaInt *list, int elem) {
   while (aux) {
     if (aux->data == elem) {
       if (list->size == 1) {
-	free(aux);
-	aux = list->head = list->tail = NULL;
-	return;
+        free(aux);
+        aux = list->head = list->tail = NULL;
+        return;
       }
       if (aux->ant) {
-	aux->ant->sig = aux->sig;
+        aux->ant->sig = aux->sig;
       } else {
-	list->head = aux->sig;
+        list->head = aux->sig;
       }
       if (aux->sig) {
-	aux->sig->ant = aux->ant;
+        aux->sig->ant = aux->ant;
       } else {
-	list->tail = aux->ant;
+        list->tail = aux->ant;
       }
       aux->ant = aux->sig = NULL;
       free(aux);
@@ -245,12 +245,12 @@ int getFirstLI(ListaInt *list) {
       list->size--;      
     } else {
       if (list->head->sig) {	
-	list->tail = list->head->sig;
-	free(aux);
-	aux = NULL;
-	list->size--;
+        list->tail = list->head->sig;
+        free(aux);
+        aux = NULL;
+        list->size--;
       } else {
-	return ans;
+        return ans;
       }
     }
   }
@@ -268,12 +268,12 @@ int getLastLI(ListaInt *list) {
       list->size--;      
     } else {
       if (list->tail->ant) {
-	list->tail = list->tail->ant;
-	free(aux);
-	aux = NULL;
-	list->size--;
+        list->tail = list->tail->ant;
+        free(aux);
+        aux = NULL;
+        list->size--;
       } else {
-	return INT_MIN;
+        return INT_MIN;
       }
     }
   }
@@ -361,19 +361,19 @@ void deleteLS(ListaStr *list,  char *elem) {
   while (aux) {
     if (strcmp(aux->data,elem) == 0) {
       if (list->size == 1) {
-	free(aux);
-	aux = list->head = list->tail = NULL;
-	return;
+        free(aux);
+        aux = list->head = list->tail = NULL;
+        return;
       }
       if (aux->ant) {
-	aux->ant->sig = aux->sig;
+        aux->ant->sig = aux->sig;
       } else {
-	list->head = aux->sig;
+        list->head = aux->sig;
       }
       if (aux->sig) {
-	aux->sig->ant = aux->ant;
+        aux->sig->ant = aux->ant;
       } else {
-	list->tail = aux->ant;
+        list->tail = aux->ant;
       }
       aux->ant = aux->sig = NULL;
       free(aux);
@@ -445,13 +445,13 @@ char *getFirstLS(ListaStr *list) {
       list->size--;      
     } else {
       if (list->head->sig) {	
-	list->tail = list->head->sig;
-	free(aux->data);
-	free(aux);
-	aux = NULL;
-	list->size--;
+        list->tail = list->head->sig;
+        free(aux->data);
+        free(aux);
+        aux = NULL;
+        list->size--;
       } else {
-	return ans;
+        return ans;
       }
     }
   }
@@ -469,13 +469,13 @@ char *getLastLS(ListaStr *list) {
       list->size--;      
     } else {
       if (list->tail->ant) {
-	list->tail = list->tail->ant;
-	free(aux->data);
-	free(aux);
-	aux = NULL;
-	list->size--;
+        list->tail = list->tail->ant;
+        free(aux->data);
+        free(aux);
+        aux = NULL;
+        list->size--;
       } else {
-	return ans;
+        return ans;
       }
     }
   }
