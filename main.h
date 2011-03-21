@@ -69,6 +69,11 @@
 #define WRITE 1
 #endif
 
+#ifndef SGNL
+#define SGNL
+#include <signal.h>
+#endif
+
 #ifndef USO
 /* Mensaje de USO que se mostrará como ayuda al usarse la opción "-h" 
  * Basado en el enunciado del proyecto.
@@ -124,4 +129,4 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
  * retorna: el índice del primer proceso libre; -1 en caso de que todos los 
  *          procesos estén ocupados.
  */
-int freeJob(int busyJobs[], int nc);
+int lazyJob(int busyJobs[], int nc);

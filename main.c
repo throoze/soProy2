@@ -68,6 +68,11 @@
 #define WRITE 1
 #endif
 
+#ifndef SGNL
+#define SGNL
+#include <signal.h>
+#endif
+
 #ifndef USO
 /* Mensaje de USO que se mostrará como ayuda al usarse la opción "-h" 
  * Basado en el enunciado del proyecto.
@@ -77,6 +82,16 @@
 
 #include "main.h"
 
+void sigusr1Handler() {
+    
+}
+
+void sigusr2Handler() {
+    int childPid, childStatus;
+    childPid = wait(&childStatus);
+    printf("El hijo %d termino en menos de %d segundos...\n",childPid,delay);
+    exit(0);
+}
 
 void procArg(int argc, char **argv, int *i, unsigned long *nc, DIR **startDir,char **startDirName, int *out){
   if (strcmp(argv[*i],"-h") == 0) {
@@ -179,7 +194,7 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
   *numDirs = *numDirs + 1;
 }
 
-int freeJob(int busyJobs[], int nc){
+int lazyJob(int busyJobs[], int nc){
   register int i;
   for (i = 0; i < nc; i++) {
     if (busyJobs[i] == FALSE) {
@@ -237,9 +252,10 @@ int main (int argc, char **argv) {
   int busyJobs[nc];                       // Indicador de trabajos (procesos) 
                                           // ocupados.  
   int numBusy = 0;                        // Numero de trabajos ocupados.
-  int pipesR[nc][2];                      // Contenedor de los pipes que van a
+  int numLazy = nc;                       // Numero de trabajos desocupados.
+  int pipeR[2];                           // Contenedor del pipes que va a
                                           // LEER de los procesos hijos.
-  int pipesW[nc][2];                      // Contenedor de los pipes que van a
+  int pipeW[2];                           // Contenedor del pipe que va a
                                           // ESCRIBIR en los procesos hijos.
   register int i;                         // Contador para los ciclos.
   for (i = 0; i < nc; i++) {
@@ -249,37 +265,52 @@ int main (int argc, char **argv) {
   firstPass(startDir,startDirName,pendDirs,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
 
   /* Crear los pipes para la comunicación entre padre e hijos */
-  for (i = 0; i < nc; i++) {
-    pipe(pipesR[i]);
-    pipe(pipesW[i]);
-  }
+  pipe(pipeR);
+  pipe(pipeW);
+
+  /* Redirección de la entrada estandar del padre al pipe */
+  close(pipeR[WRITE]);
+  dup2(pipeR[READ],0);
+  close(pipeR[READ]);
 
   /* Crear los procesos hijos */
   for (i = 0; i < nc; i++) {
     if ((jobs[i]=fork())==0){
-      /* redireccion de la entrada al pipe */
-      close(pipesW[i][WRITE]);
-      dup2(pipesW[i][READ],0);
-      close(pipesW[i][READ]);
-      /* redireccion de la salida al pipe */
-      close(pipesR[i][READ]);
-      dup2(pipesR[i][WRITE],1);
-      close(pipesR[i][WRITE]);
-      if (esVaciaPilaString(pendDirs)) {
-        execlp("./job","job",NULL);
-      } else {
-        //char * directorio = (char *) malloc((strlen(pendDirs->head->palabra)+1) * sizeof(char));
-        //directorio = popPilaString(pendDirs);
-        char *directorio = popPilaString(pendDirs);
-        execlp("./job","job",directorio,NULL);
-      }
+      /* Redireccion de la entrada al pipe */
+      close(pipeW[WRITE]);
+      dup2(pipeW[READ],0);
+      close(pipeW[READ]);
+      /* Redireccion de la salida al pipe */
+      close(pipeR[READ]);
+      dup2(pipeR[WRITE],1);
+      close(pipeR[WRITE]);
+      char numProc[12];
+      sprintf(numProc,"%d",i);
+      execlp("./job","job",numProc,NULL);
     }
   }
 
+  /* Instalo el manejador para SIGUSR2 */
+
+  /* Asigna las tareas: */
+  while (numLazy > 0){
+    if (!esVaciaPilaString(pendDirs)) {
+      int child = lazyJob(busyJobs,nc);
+      kill(jobs[child],SIGUSR1);
+      char numBytes[12];
+      char *directory = popPilaString(pendDirs);
+      sprintf(numBytes,"%d",sizeof(directory));
+      write(pipeW[WRITE],numBytes);
+      busyJobs[child] = TRUE;
+      numBusy++;
+      numLazy--;
+      pause();
+    }
+  }
 
   /* COSAS QUE FALTAN: */
   ///////////////////////
-  /* -COORDINAR LA ASIGNACION DE TRABAJOS */
+  /* -COORDINAR LA ASIGNACION DE TRABAJOS */ 
   /* -PASAR LAS LISTAS A ARREGLOS */
   /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
   /* -ESCRIBIR LA SALIDA */
