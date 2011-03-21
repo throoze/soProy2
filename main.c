@@ -157,11 +157,15 @@ void firstPass(DIR *startDir,char *startDirName,PilaString *pendDirs,ListaStr *a
       } else if (S_ISREG(mode)) {
         /* Lo contabilizo y contabilizo su peso*/
         *numRegFiles = *numRegFiles + 1;
-        *totalBlocks = *totalBlocks + (((int) statBuf.st_size)/((int) statBuf.st_blksize));
+        int divEnt = (((int) statBuf.st_size)/((int) statBuf.st_blksize));
+        double divDoub = (((double) statBuf.st_size)/((int) statBuf.st_blksize));
+        *totalBlocks = *totalBlocks + divEnt + ((double)divEnt == divDoub ? 0 : 1);
+				printf("*****************%d\n %f \n",*totalBlocks, ((int) statBuf.st_blksize));
         //printf("El archivo \"%s\" Es Regular y tiene %d bytes y %d links\n",fileName,(int) statBuf.st_size,(int) statBuf.st_nlink);
       }
     }
   }
+	//printf("*****************%d\n",*totalBlocks);
   addLS(ansDirs, startDirName);
   add(ansBlocks, *totalBlocks);
   *numDirs = *numDirs + 1;
