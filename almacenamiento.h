@@ -28,6 +28,17 @@
 #include <limits.h>
 #endif
 
+
+/* Estructura para la comunicación entre procesos */
+typedef struct ans Ans;
+
+struct ans {
+  int numChild;
+  int numRegs;
+  int tamBlks;
+  int tamStr;
+};
+
 /*----------------------------------------------------------------------------*/
 
 /* Definicion del tipo PilaString */
