@@ -35,11 +35,12 @@ typedef struct ans Ans;
 struct ans {
   int numChild;
   int numRegs;
+  int numDirects;
   int tamBlks;
   int tamStr;
-	int numDirects;
-	int *lengths;// = malloc(numDirects);
-	char * directories;// = malloc(tamStr);
+	int *lengths;
+	char * directories;
+
 };
 
 /*----------------------------------------------------------------------------*/

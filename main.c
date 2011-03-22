@@ -114,8 +114,8 @@ void sigusr1Handler() {
   int tamRegs;
   char *buffer;
   
-  /* Recibo el indice del hijo con quien estoy hablando */
-  read(0,buffer,12);
+  /* Recibo la estructura del hijo... */
+  read(0,buffer,sizeof(Ans));
   numChild = (int) strtoul(buffer,&buffer,10);
   
   /* Le digo a los demas que no me hablen */
@@ -390,7 +390,43 @@ int main (int argc, char **argv) {
 
   /* Espero las respuestas de los hijos */
   while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
-    pause();
+    /* Leo la información de un hijo */
+    Ans *answer = (Ans *) malloc(sizeof(Ans));
+    read(0,answer,sizeof(Ans));    
+    int numChild = answer->numChild;
+    int numRegs = answer->numRegs;
+    int numDirects = answer->numDirects;
+    int tamBlks = answer->tamBlks;
+    int tamStr = answer->tamStr;
+    int *lengths = (int *) malloc(numDirects * sizeof(int));
+    read(0,lengths,numDirects);
+    answer->directories = (char *) malloc(tamStr * sizeof(char));
+    read(0,answer->directories,tamStr);
+
+    /* Proceso la información obtenida */
+    numRegFiles += numRegs;
+    numDirs += numDirects;    
+    addLS(ansDirs,dirAsig[numChild]);
+    add(ansBlocks,tamBlks);
+
+    /* Proceso el string */
+    for (i = 0; i < numDirects-1; i++) {
+      char actual[lengths[i]];
+      sscanf(answer->directories, "%[^'!']",actual);
+      pushPilaString(pendDirs,actual);
+    }
+    char actual[lengths[i]];
+    sscanf(answer->directories,"%s",actual);
+    pushPilaString(pendDirs,actual);
+    
+    /* Marco a este proceso como desocupado */
+    busyJobs[numChild] = FALSE;
+    numBusy--;
+    numLazy++;
+
+    
+    /* Vuelvo a asignar trabajos */
+    asignarTrabajos();
   }
 
   for (i = 0; i < nc; i++) {
@@ -400,7 +436,6 @@ int main (int argc, char **argv) {
   
   /* COSAS QUE FALTAN: */
   ///////////////////////
-  /* -PASAR LAS LISTAS A ARREGLOS */
   /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
   /* -ESCRIBIR LA SALIDA */
 
@@ -414,6 +449,7 @@ int main (int argc, char **argv) {
     char *string = (char *) malloc((strlen(respuestaDirs[i]) + 13) * sizeof(char));
     sprintf(string,"%d\t%s",respuestaBlocks[i],respuestaDirs[i]);
     write(out,string,strlen(string));
+    free(string);
   }
 
   /* LIBERACION DE MEMORIA USADA Y CIERRE DE FICHEROS ABIERTOS*/

@@ -73,7 +73,7 @@ void manejadorMuerte(){
 }
 
 void manejadorLectura(){	
-  printf("leyendo***********\n");
+  perror("leyendo***********\n");
   int totalBytes = 0;
   int bitsEnt;
   read(0,&bitsEnt,sizeof(int));
@@ -146,15 +146,15 @@ write(1,respuesta, sizeof(respuesta));
 }
 
 void main(int argc, char **argv){
-
   numero = atoi(argv[1]);
   padre = getppid();
-  signal(SIGUSR1 ,manejadorLectura);
   signal(SIGUSR2 ,manejadorSilencio);
   signal(SIGCONT,manejadorMuerte);
+	signal(SIGUSR1 ,manejadorLectura);
   while (TRUE){
+		perror( "me pauso\n");
     pause();
-    printf("esto pasa luego de q termina\n");
+    perror("esto pasa luego de q termina\n");
   }
 }
 
