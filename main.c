@@ -389,7 +389,7 @@ int main (int argc, char **argv) {
       int child = lazyJob(busyJobs,nc);
       kill(jobs[child],SIGUSR1);
       char *directory = popPilaString(pendDirs);
-      int tam = strlen(directory);
+      int tam = strlen(directory)+1;
       write(pipeW[WRITE],&tam,sizeof(int));
       pause();
       printf("Soy papa y Estoy saliendo de la pausa!!!\n");
@@ -404,6 +404,9 @@ int main (int argc, char **argv) {
     }
     i++;
   }
+
+  printf("Tareas asignadas...\n");
+  fflush(stdout);
 
   /* Espero las respuestas de los hijos */
   while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
