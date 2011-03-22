@@ -69,7 +69,7 @@ void manejadorSilencio(){
 }
 
 void manejadorMuerte(){
-	exit(0);
+  exit(0);
 }
 
 void manejadorLectura(){	
@@ -78,7 +78,8 @@ void manejadorLectura(){
   int bitsEnt;
   read(0,&bitsEnt,sizeof(int));
   char *principal =  (char *) malloc(bitsEnt * sizeof(char));
-  kill(padre, SIGUSR2);
+  //kill(padre, SIGUSR2);
+  kill(padre,SIGCONT);
   read(0, principal, bitsEnt);
   DIR *dirp;
   struct dirent *direntp;
@@ -87,7 +88,7 @@ void manejadorLectura(){
 
   if ((dirp = opendir(principal))==NULL) {
     fprintf(stderr,"No se puede abrir el directorio %s: %s\n", principal,
-  	    strerror(errno));
+            strerror(errno));
     exit(1);
   }
 
@@ -95,10 +96,14 @@ void manejadorLectura(){
   int numArchi = 0;
 	int numDir = 0;
  
+
 	PilaString *pila = newPilaString();
 	ListaInt * ocup = newListaInt();
+
  
-/* Itera por el inodo del directorio*/
+  /* Itera por el inodo del directorio*/
+	direntp=readdir(dirp);
+	direntp=readdir(dirp);
   while ((direntp=readdir(dirp)) != NULL) {
     char *aux = (char *) malloc((strlen(principal) + strlen(direntp->d_name) + 2) * sizeof(char));
     fflush(stdout);
@@ -113,6 +118,7 @@ void manejadorLectura(){
 			add(ocup,strlen(aux));
 		  totalBytes += (sizeof(int)) + (strlen(aux) + 1);
 			numDir++;
+
     } else  if (S_ISREG(mode)) {
       numArchi++;
       sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
@@ -122,40 +128,44 @@ void manejadorLectura(){
   closedir(dirp);
   printf("terminoooooooo-------\n");
 
-char *directorios = (char *)  malloc(totalBytes);
-while (!esVaciaPilaString(pila)){
+  char *directorios = (char *)  malloc(totalBytes);
+  while (!esVaciaPilaString(pila)){
 	sprintf(directorios, "%s%s!", directorios, popPilaString(pila));
-}
+  }
 	
    
-/* crea la estructura de retorno */
-Ans *respuesta;
-respuesta->numChild = numero;
-respuesta->numRegs = numArchi;
-respuesta->tamBlks = sumTam;
-respuesta->tamStr = totalBytes;
-respuesta->numDirects = numDir;
-respuesta->lengths =malloc(respuesta->numDirects);
 
-respuesta->lengths = liToArray(ocup);
-respuesta->directories = malloc(totalBytes);
+  /* crea la estructura de retorno */
+  Ans *respuesta = (Ans *) malloc(sizeof(Ans));
+  respuesta->numChild = numero;
+  respuesta->numRegs = numArchi;
+  respuesta->tamBlks = sumTam;
+  respuesta->tamStr = totalBytes;
+	respuesta->lengths =malloc(respuesta->numDirects);
+	respuesta->lengths = liToArray(ocup);
+  respuesta->directories = malloc(strlen(directorios));
 
-/* Escribe la respuesta al padre */
-write(1,respuesta, sizeof(respuesta));
+
+  /* Escribe la respuesta al padre */
+  write(1,respuesta, sizeof(respuesta));
 
 }
 
-void main(int argc, char **argv){
+
+int main(int argc, char **argv){
   numero = atoi(argv[1]);
+  fprintf(stderr,"Estoy en el hijo %d!\n",numero);
   padre = getppid();
   signal(SIGUSR2 ,manejadorSilencio);
   signal(SIGCONT,manejadorMuerte);
 	signal(SIGUSR1 ,manejadorLectura);
+
   while (TRUE){
 		perror( "me pauso\n");
     pause();
     perror("esto pasa luego de q termina\n");
   }
+  return 0;
 }
 
 
