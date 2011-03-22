@@ -392,7 +392,7 @@ int main (int argc, char **argv) {
   while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
     /* Leo la información de un hijo */
     Ans *answer = (Ans *) malloc(sizeof(Ans));
-    read(0,answer,sizeof(Ans));
+    read(0,answer,sizeof(Ans));    
     int numChild = answer->numChild;
     int numRegs = answer->numRegs;
     int numDirects = answer->numDirects;
@@ -412,12 +412,17 @@ int main (int argc, char **argv) {
     /* Proceso el string */
     for (i = 0; i < numDirects-1; i++) {
       char actual[lengths[i]];
-      sscanf(answer->directories, "%[^',']",actual);
+      sscanf(answer->directories, "%[^'!']",actual);
       pushPilaString(pendDirs,actual);
     }
     char actual[lengths[i]];
     sscanf(answer->directories,"%s",actual);
     pushPilaString(pendDirs,actual);
+    
+    /* Marco a este proceso como desocupado */
+    busyJobs[numChild] = FALSE;
+    numBusy--;
+    numLazy++;
 
     
     /* Vuelvo a asignar trabajos */
