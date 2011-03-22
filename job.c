@@ -94,8 +94,10 @@ void manejadorLectura(){
 
   int sumTam  = 0;
   int numArchi = 0;
-  PilaString *directorios = newPilaString();
  
+	PilaString *pila = newPilaString();
+ 
+/* Itera por el inodo del directorio*/
   while ((direntp=readdir(dirp)) != NULL) {
     char *aux = (char *) malloc((strlen(principal) + strlen(direntp->d_name) + 2) * sizeof(char));
     fflush(stdout);
@@ -106,8 +108,8 @@ void manejadorLectura(){
     }
     mode = statbuf.st_mode;
     if ( S_ISDIR(mode)) {
-      pushPilaString(directorios, aux);
-	  totalBytes += (strlen(aux) + 1);
+			pushPilaString(pila, aux);
+		  totalBytes += (strlen(aux) + 1);
     } else  if (S_ISREG(mode)) {
       numArchi++;
       sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
@@ -116,12 +118,24 @@ void manejadorLectura(){
   }
   closedir(dirp);
   printf("terminoooooooo-------\n");
-  
-  /* Concateno los strings */
-  while (!esVaciaPilaString(directorios)){
-    
-  }
+
+char *directorios = (char *)  malloc(totalBytes);
+while (!esVaciaPilaString(pila)){
+	sprintf(directorios, "%s%s!", directorios, popPilaString(pila));
+}
 	
+   
+/* crea la estructura de retorno */
+Ans *respuesta;
+respuesta->numChild = numero;
+respuesta->numRegs = numArchi;
+respuesta->tamBlks = sumTam;
+respuesta->tamStr = totalBytes;
+respuesta->directories = malloc(strlen(directorios));
+
+/* Escribe la respuesta al padre */
+write(1,respuesta, sizeof(respuesta));
+
 }
 
 void main(int argc, char **argv){
@@ -131,7 +145,6 @@ void main(int argc, char **argv){
   signal(SIGUSR1 ,manejadorLectura);
   signal(SIGUSR2 ,manejadorSilencio);
   signal(SIGCONT,manejadorMuerte);
-  write("Soy el hijo\n");
   while (TRUE){
     pause();
     printf("esto pasa luego de q termina\n");
