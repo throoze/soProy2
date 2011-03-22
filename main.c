@@ -343,33 +343,48 @@ int main (int argc, char **argv) {
 
   /* Crear los procesos hijos */
   for (i = 0; i < nc; i++) {
-    if ((jobs[i]=fork())==0){
+    jobs[i]=fork();    
+    if (jobs[i]==0){
+      fprintf(stderr,"Creando el hijo %d...\n",i);
       /* Redireccion de la entrada al pipe */
       close(pipeW[WRITE]);
       dup2(pipeW[READ],0);
       close(pipeW[READ]);
+      fprintf(stderr,"Entrada estandar del hijo %d redireccionada...\n",i);
       /* Redireccion de la salida al pipe */
       close(pipeR[READ]);
       dup2(pipeR[WRITE],1);
       close(pipeR[WRITE]);
+      fprintf(stderr,"Salida estandar del hijo %d redireccionada...\n",i);
 
       char numProc[12];
       sprintf(numProc,"%d",i);
       execlp("./job","job",numProc,NULL);
+    } else {
+      printf("Soy el padre, cree el hijo %d!!!\n",i);
     }
   }
+
+  printf("Los procesos son:\n");
+  for (i = 0; i < nc; i++) {
+    printf("%d\n",jobs[i]);
+  }
+
   /* Redirección de la entrada estandar del padre al pipe */
   close(pipeR[WRITE]);
   dup2(pipeR[READ],0);
   close(pipeR[READ]);
-  
+  printf("Entrada del padre redireccionada...\n");
+
   /* Instalo el manejador para SIGUSR1 y SIGUSR2 */
   signal(SIGUSR1, sigusr1Handler);
   signal(SIGUSR2, sigusr2Handler);
-  
+  signal(SIGCHLD, childHandler);
+  printf("Manejadores del padre instalados...\n");
+
   /* Asigna las tareas: */
   i = 0;
-  while (numLazy > 0 && i < nc){
+  while (numLazy > 0 && i < nc) {
     if (!esVaciaPilaString(pendDirs)) {
       int child = lazyJob(busyJobs,nc);
       kill(jobs[child],SIGUSR1);
@@ -377,6 +392,8 @@ int main (int argc, char **argv) {
       int tam = strlen(directory);
       write(pipeW[WRITE],&tam,sizeof(int));
       pause();
+      printf("Soy papa y Estoy saliendo de la pausa!!!\n");
+      fflush(stdout);
       write(pipeW[WRITE],directory,tam);
       dirAsig[child] = directory;
       busyJobs[child] = TRUE;
@@ -430,7 +447,7 @@ int main (int argc, char **argv) {
   }
 
   for (i = 0; i < nc; i++) {
-    kill(jobs[i],SIGCONT);
+    kill(jobs[i],SIGALRM);
   }
 
   
