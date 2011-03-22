@@ -45,7 +45,7 @@ almacenamiento.o: almacenamiento.c almacenamiento.h
 	gcc ${CFLAGS} -c almacenamiento.c
 
 clean:
-	makeclean.sh
+	./makeclean.sh
 
 check-syntax:
 	gcc -o nul -Wall -S ${CHK_SOURCES}
