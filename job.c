@@ -3,12 +3,39 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <dirent.h>
 #include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #define FALSE 0
 #define TRUE 1
+#endif
+
+#ifndef EDG
+#define EDG
+#include <limits.h>
+#endif
+
+#ifndef DIRE
+#define DIRE
+#include <dirent.h>
+#endif
+
+#ifndef USEPROC
+#define USEPROC
+#include <unistd.h>
+#endif
+
+#ifndef FCNTL
+#define FCNTL
+#include <fcntl.h>
+#endif
+
+#ifndef TYPE
+#define TYPE
+#include <sys/types.h>
+#endif
+
+#ifndef STATS
+#define STATS
+#include <sys/stat.h>
 #endif
 
 #ifndef ALM
@@ -16,9 +43,22 @@
 #include "almacenamiento.h"
 #endif
 
+#ifndef MSC
+#define MSC
+#include "misc.h"
+#endif
 
+#ifndef RWPIPE
+#define RWPIPE
+#define READ 0
+#define WRITE 1
+#endif
+
+#ifndef SGNL
+#define SGNL
+#include <signal.h>
+#endif
 #include "job.h"
-#include  <signal.h>
 
 int numero;
 int padre;
@@ -34,9 +74,10 @@ void manejadorMuerte(){
 
 void manejadorLectura(){	
   printf("leyendo***********\n");
-  char *principal =  (char *) malloc(sizeof(char *));
+  int totalBytes = 0;
   int bitsEnt;
-  read(0, bitsEnt, 12);
+  read(0,&bitsEnt,sizeof(int));
+  char *principal =  (char *) malloc(bitsEnt * sizeof(char));
   kill(padre, SIGUSR2);
   read(0, principal, bitsEnt);
   printf("Leyendo %s 2\n",principal);
@@ -66,7 +107,7 @@ void manejadorLectura(){
     mode = statbuf.st_mode;
     if ( S_ISDIR(mode)) {
       pushPilaString(directorios, aux);
-			
+	  totalBytes += (strlen(aux) + 1);
     } else  if (S_ISREG(mode)) {
       numArchi++;
       sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
@@ -75,24 +116,11 @@ void manejadorLectura(){
   }
   closedir(dirp);
   printf("terminoooooooo-------\n");
-  while(!hablar){		
-    pause();
-  }
-  kill(padre,SIGUSR1);
-  write(numero);
-  pause();
-  write(directorios->size);
-  pause();
+  
+  /* Concateno los strings */
   while (!esVaciaPilaString(directorios)){
-    char *aux = popPilaString(directorios);
-    write(sizeof(aux));
-    pause();
-    write(aux);
+    
   }
-  pause();
-  write(numArchi);
-  pause();
-  write(sumTam);
 	
 }
 
