@@ -105,6 +105,9 @@ int  numBusy;         // Numero de trabajos ocupados.
 int  numLazy;         // Numero de trabajos desocupados.
 int pipeW[2];         // Contenedor del pipe que va a
                       // ESCRIBIR en los procesos hijos.
+
+
+
 /**
  * Procesa los argumentos entrados por linea de comandos.
  * Recibe argumentos apuntadores para que los argumentos sean pasados

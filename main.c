@@ -82,17 +82,17 @@
 
 #include "main.h"
 
+void sigusr2Handler(){}
+
 void asignarTrabajos(){
   while (numLazy > 0 && !esVaciaPilaString(pendDirs)) {
     int child = lazyJob(busyJobs,nc);
     kill(jobs[child],SIGUSR1);
-    char numBytes[12];
     char *directory = popPilaString(pendDirs);
     int tam = strlen(directory);
-    sprintf(numBytes,"%d",tam);
-    write(pipeW[WRITE],numBytes,strlen(numBytes));
+    write(pipeW[WRITE],&tam,sizeof(int));
     pause();
-    write(pipeW[WRITE],directory,strlen(directory));
+    write(pipeW[WRITE],directory,tam);
     dirAsig[child] = directory;
     busyJobs[child] = TRUE;
     numBusy++;
@@ -341,11 +341,6 @@ int main (int argc, char **argv) {
   pipe(pipeR);
   pipe(pipeW);
 
-  /* Redirección de la entrada estandar del padre al pipe */
-  close(pipeR[WRITE]);
-  dup2(pipeR[READ],0);
-  close(pipeR[READ]);
-
   /* Crear los procesos hijos */
   for (i = 0; i < nc; i++) {
     if ((jobs[i]=fork())==0){
@@ -363,10 +358,14 @@ int main (int argc, char **argv) {
       execlp("./job","job",numProc,NULL);
     }
   }
+  /* Redirección de la entrada estandar del padre al pipe */
+  close(pipeR[WRITE]);
+  dup2(pipeR[READ],0);
+  close(pipeR[READ]);
   
   /* Instalo el manejador para SIGUSR1 y SIGUSR2 */
   signal(SIGUSR1, sigusr1Handler);
-  signal(SIGUSR2,SIG_IGN);
+  signal(SIGUSR2, sigusr2Handler);
   
   /* Asigna las tareas: */
   i = 0;
@@ -374,15 +373,17 @@ int main (int argc, char **argv) {
     if (!esVaciaPilaString(pendDirs)) {
       int child = lazyJob(busyJobs,nc);
       kill(jobs[child],SIGUSR1);
-      char numBytes[12];
       char *directory = popPilaString(pendDirs);
       int tam = strlen(directory);
-      sprintf(numBytes,"%d",tam);
-      write(pipeW[WRITE],numBytes,tam);
+      write(pipeW[WRITE],&tam,sizeof(int));
+      pause();
+      write(pipeW[WRITE],directory,tam);
       dirAsig[child] = directory;
       busyJobs[child] = TRUE;
       numBusy++;
       numLazy--;
+    } else {
+      break;
     }
     i++;
   }
