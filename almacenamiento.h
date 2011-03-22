@@ -35,9 +35,10 @@ typedef struct ans Ans;
 struct ans {
   int numChild;
   int numRegs;
+  int numDirects;
   int tamBlks;
   int tamStr;
-	char * directories;
+  char *directories;
 };
 
 /*----------------------------------------------------------------------------*/

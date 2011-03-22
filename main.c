@@ -390,7 +390,38 @@ int main (int argc, char **argv) {
 
   /* Espero las respuestas de los hijos */
   while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
-    pause();
+    /* Leo la información de un hijo */
+    Ans *answer = (Ans *) malloc(sizeof(Ans));
+    read(0,answer,sizeof(Ans));
+    int numChild = answer->numChild;
+    int numRegs = answer->numRegs;
+    int numDirects = answer->numDirects;
+    int tamBlks = answer->tamBlks;
+    int tamStr = answer->tamStr;
+    int *lengths = (int *) malloc(numDirects * sizeof(int));
+    read(0,lengths,numDirects);
+    answer->directories = (char *) malloc(tamStr * sizeof(char));
+    read(0,answer->directories,tamStr);
+
+    /* Proceso la información obtenida */
+    numRegFiles += numRegs;
+    numDirs += numDirects;    
+    addLS(ansDirs,dirAsig[numChild]);
+    add(ansBlocks,tamBlks);
+
+    /* Proceso el string */
+    for (i = 0; i < numDirects-1; i++) {
+      char actual[lengths[i]];
+      sscanf(answer->directories, "%[^',']",actual);
+      pushPilaString(pendDirs,actual);
+    }
+    char actual[lengths[i]];
+    sscanf(answer->directories,"%s",actual);
+    pushPilaString(pendDirs,actual);
+
+    
+    /* Vuelvo a asignar trabajos */
+    asignarTrabajos();
   }
 
   for (i = 0; i < nc; i++) {
