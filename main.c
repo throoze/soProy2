@@ -114,8 +114,8 @@ void sigusr1Handler() {
   int tamRegs;
   char *buffer;
   
-  /* Recibo el indice del hijo con quien estoy hablando */
-  read(0,buffer,12);
+  /* Recibo la estructura del hijo... */
+  read(0,buffer,sizeof(Ans));
   numChild = (int) strtoul(buffer,&buffer,10);
   
   /* Le digo a los demas que no me hablen */
@@ -400,7 +400,6 @@ int main (int argc, char **argv) {
   
   /* COSAS QUE FALTAN: */
   ///////////////////////
-  /* -PASAR LAS LISTAS A ARREGLOS */
   /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
   /* -ESCRIBIR LA SALIDA */
 
@@ -414,6 +413,7 @@ int main (int argc, char **argv) {
     char *string = (char *) malloc((strlen(respuestaDirs[i]) + 13) * sizeof(char));
     sprintf(string,"%d\t%s",respuestaBlocks[i],respuestaDirs[i]);
     write(out,string,strlen(string));
+    free(string);
   }
 
   /* LIBERACION DE MEMORIA USADA Y CIERRE DE FICHEROS ABIERTOS*/
