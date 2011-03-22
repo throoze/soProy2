@@ -345,56 +345,46 @@ int main (int argc, char **argv) {
   for (i = 0; i < nc; i++) {
     jobs[i]=fork();    
     if (jobs[i]==0){
-      fprintf(stderr,"Creando el hijo %d...\n",i);
       /* Redireccion de la entrada al pipe */
       close(pipeW[WRITE]);
       dup2(pipeW[READ],0);
       close(pipeW[READ]);
-      fprintf(stderr,"Entrada estandar del hijo %d redireccionada...\n",i);
       /* Redireccion de la salida al pipe */
       close(pipeR[READ]);
       dup2(pipeR[WRITE],1);
       close(pipeR[WRITE]);
-      fprintf(stderr,"Salida estandar del hijo %d redireccionada...\n",i);
 
       char numProc[12];
       sprintf(numProc,"%d",i);
       execlp("./job","job",numProc,NULL);
-    } else {
-      printf("Soy el padre, cree el hijo %d!!!\n",i);
     }
-  }
-
-  printf("Los procesos son:\n");
-  for (i = 0; i < nc; i++) {
-    printf("%d\n",jobs[i]);
   }
 
   /* Redirección de la entrada estandar del padre al pipe */
   close(pipeR[WRITE]);
   dup2(pipeR[READ],0);
   close(pipeR[READ]);
-  printf("Entrada del padre redireccionada...\n");
 
   /* Instalo el manejador para SIGUSR1 y SIGUSR2 */
   signal(SIGUSR1, sigusr1Handler);
   signal(SIGUSR2, sigusr2Handler);
   signal(SIGCHLD, childHandler);
-  printf("Manejadores del padre instalados...\n");
 
   /* Asigna las tareas: */
   i = 0;
   while (numLazy > 0 && i < nc) {
+    printf("i = %d\n",i);
+    fflush(stdout);
     if (!esVaciaPilaString(pendDirs)) {
-      int child = lazyJob(busyJobs,nc);
-      kill(jobs[child],SIGUSR1);
+      int child = lazyJob(busyJobs,nc);      
       char *directory = popPilaString(pendDirs);
       int tam = strlen(directory)+1;
+      kill(jobs[child],SIGUSR1);
       write(pipeW[WRITE],&tam,sizeof(int));
       pause();
+      write(pipeW[WRITE],directory,tam);      
       printf("Soy papa y Estoy saliendo de la pausa!!!\n");
       fflush(stdout);
-      write(pipeW[WRITE],directory,tam);
       dirAsig[child] = directory;
       busyJobs[child] = TRUE;
       numBusy++;
@@ -405,23 +395,33 @@ int main (int argc, char **argv) {
     i++;
   }
 
-  printf("Tareas asignadas...\n");
+  printf("\n\nTareas asignadas...\nnumBusy = %d\npendDirs %s es vacia\n\n",numBusy,(esVaciaPilaString(pendDirs) ? "SI" : "NO"));
   fflush(stdout);
 
   /* Espero las respuestas de los hijos */
-  while (busyJobs > 0 && !esVaciaPilaString(pendDirs)) {
+  while (numBusy > 0 && !esVaciaPilaString(pendDirs)) {
     /* Leo la información de un hijo */
-    Ans *answer = (Ans *) malloc(sizeof(Ans));
-    read(0,answer,sizeof(Ans));    
-    int numChild = answer->numChild;
-    int numRegs = answer->numRegs;
-    int numDirects = answer->numDirects;
-    int tamBlks = answer->tamBlks;
-    int tamStr = answer->tamStr;
+    printf("Leyendo respuestas...\n");
+    fflush(stdout);
+
+    int numChild;
+    int numRegs;
+    int numDirects;
+    int tamBlks;
+    int tamStr;
+    read(0,&numChild,sizeof(int));
+    read(0,&numRegs,sizeof(int));
+    read(0,&numDirects,sizeof(int));
+    read(0,&tamBlks,sizeof(int));
+    read(0,&tamStr,sizeof(int));
     int *lengths = (int *) malloc(numDirects * sizeof(int));
-    read(0,lengths,numDirects);
-    answer->directories = (char *) malloc(tamStr * sizeof(char));
-    read(0,answer->directories,tamStr);
+    char * directories = (char *) malloc(tamStr * sizeof(char));
+    printf("Soy el PAPA y leí del hijo numero %d\n",numChild);
+    fflush(stdout);
+    for (i = 0; i < numDirects; i++){
+      read(0,&lengths[i],numDirects);
+    }
+    read(0,directories,tamStr);
 
     /* Proceso la información obtenida */
     numRegFiles += numRegs;
@@ -432,11 +432,11 @@ int main (int argc, char **argv) {
     /* Proceso el string */
     for (i = 0; i < numDirects-1; i++) {
       char actual[lengths[i]];
-      sscanf(answer->directories, "%[^'!']",actual);
+      sscanf(directories, "%[^'!']",actual);
       pushPilaString(pendDirs,actual);
     }
     char actual[lengths[i]];
-    sscanf(answer->directories,"%s",actual);
+    sscanf(directories,"%s",actual);
     pushPilaString(pendDirs,actual);
     
     /* Marco a este proceso como desocupado */

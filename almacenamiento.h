@@ -38,9 +38,8 @@ struct ans {
   int numDirects;
   int tamBlks;
   int tamStr;
-	int *lengths;
-	char * directories;
-
+  int *lengths;
+  char * directories;
 };
 
 /*----------------------------------------------------------------------------*/

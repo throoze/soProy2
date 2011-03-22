@@ -21,3 +21,4 @@
 #include "misc.h"
 #endif
 
+char *num;
