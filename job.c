@@ -80,7 +80,6 @@ void manejadorLectura(){
   char *principal =  (char *) malloc(bitsEnt * sizeof(char));
   kill(padre, SIGUSR2);
   read(0, principal, bitsEnt);
-  printf("Leyendo %s 2\n",principal);
   DIR *dirp;
   struct dirent *direntp;
   struct stat statbuf;
@@ -94,8 +93,10 @@ void manejadorLectura(){
 
   int sumTam  = 0;
   int numArchi = 0;
+	int numDir = 0;
  
 	PilaString *pila = newPilaString();
+	ListaInt * ocup = newListaInt();
  
 /* Itera por el inodo del directorio*/
   while ((direntp=readdir(dirp)) != NULL) {
@@ -109,7 +110,9 @@ void manejadorLectura(){
     mode = statbuf.st_mode;
     if ( S_ISDIR(mode)) {
 			pushPilaString(pila, aux);
-		  totalBytes += (strlen(aux) + 1);
+			add(ocup,strlen(aux));
+		  totalBytes += (sizeof(int)) + (strlen(aux) + 1);
+			numDir++;
     } else  if (S_ISREG(mode)) {
       numArchi++;
       sumTam = sumTam + (((int) statbuf.st_size)/((int) statbuf.st_blksize));
@@ -131,7 +134,11 @@ respuesta->numChild = numero;
 respuesta->numRegs = numArchi;
 respuesta->tamBlks = sumTam;
 respuesta->tamStr = totalBytes;
-respuesta->directories = malloc(strlen(directorios));
+respuesta->numDirects = numDir;
+respuesta->lengths =malloc(respuesta->numDirects);
+
+respuesta->lengths = liToArray(ocup);
+respuesta->directories = malloc(totalBytes);
 
 /* Escribe la respuesta al padre */
 write(1,respuesta, sizeof(respuesta));

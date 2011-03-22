@@ -37,7 +37,9 @@ struct ans {
   int numRegs;
   int tamBlks;
   int tamStr;
-	char * directories;
+	int numDirects;
+	int *lengths;// = malloc(numDirects);
+	char * directories;// = malloc(tamStr);
 };
 
 /*----------------------------------------------------------------------------*/
