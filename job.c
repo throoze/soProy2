@@ -78,10 +78,13 @@ void manejadorLectura(){
   int bitsEnt;
   read(0,&bitsEnt,sizeof(int));
   char *principal =  (char *) malloc(bitsEnt * sizeof(char));
+  fprintf(stderr,"Soy hijo; leido: %d\n", bitsEnt);
+  fflush(stderr);
   //kill(padre, SIGUSR2);
   kill(padre,SIGCONT);
   read(0, principal, bitsEnt);
-  printf("Leyendo %s 2\n",principal);
+  fprintf(stderr,"Leyendo %s\n",principal);
+  fflush(stderr);
   DIR *dirp;
   struct dirent *direntp;
   struct stat statbuf;
