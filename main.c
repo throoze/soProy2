@@ -342,20 +342,31 @@ int main (int argc, char **argv) {
   pipe(pipeW);
 
   /* Crear los procesos hijos */
+	fprintf(stderr, "voy a crear los hijos\n");
   for (i = 0; i < nc; i++) {
     jobs[i]=fork();    
     if (jobs[i]==0){
+fprintf(stderr, "hijo creado**************0\n");
+fflush(stderr);
       /* Redireccion de la entrada al pipe */
       close(pipeW[WRITE]);
+fprintf(stderr, "hijo creado**************0.2\n");
+fflush(stderr);
       dup2(pipeW[READ],0);
+fprintf(stderr, "hijo creado**************0.3\n");
+fflush(stderr);
       close(pipeW[READ]);
+fprintf(stderr, "hijo creado**************1\n");
+fflush(stderr);
       /* Redireccion de la salida al pipe */
       close(pipeR[READ]);
       dup2(pipeR[WRITE],1);
       close(pipeR[WRITE]);
-
+fprintf(stderr, "hijo creado**************\n");
+fflush(stderr);
       char numProc[12];
       sprintf(numProc,"%d",i);
+			fprintf(stderr, "hijo creado**************\n");
       execlp("./job","job",numProc,NULL);
     }
   }
@@ -409,17 +420,22 @@ int main (int argc, char **argv) {
     int numDirects;
     int tamBlks;
     int tamStr;
-    read(0,&numChild,sizeof(int));
-    read(0,&numRegs,sizeof(int));
-    read(0,&numDirects,sizeof(int));
-    read(0,&tamBlks,sizeof(int));
-    read(0,&tamStr,sizeof(int));
+    while (read(0,&numChild,sizeof(int) ==0));
+			printf("numero de hijo leido %d\n", numChild);
+    while (read(0,&numRegs,sizeof(int) ==0));
+			printf("numero de registros %d\n", numRegs);
+    while (read(0,&numDirects,sizeof(int) ==0));
+			printf("numero de directorios %d\n", numDirects);
+    while (read(0,&tamBlks,sizeof(int) ==0));
+			printf("tamano en bloques %d\n", tamBlks);
+    while (read(0,&tamStr,sizeof(int) ==0));
+			printf("tamano string %d\n", tamStr);
     int *lengths = (int *) malloc(numDirects * sizeof(int));
     char * directories = (char *) malloc(tamStr * sizeof(char));
     printf("Soy el PAPA y leí del hijo numero %d\n",numChild);
     fflush(stdout);
     for (i = 0; i < numDirects; i++){
-      read(0,&lengths[i],numDirects);
+      while (read(0,&lengths[i],numDirects) ==0);
     }
     read(0,directories,tamStr);
 

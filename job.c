@@ -108,8 +108,6 @@ void manejadorLectura(){
   fprintf(stderr,"HIJO %d: Voy a iterar!!!\n",numero);
   fflush(stderr);
   /* Itera por el inodo del directorio*/
-  direntp=readdir(dirp);
-  direntp=readdir(dirp);
   while ((direntp=readdir(dirp)) != NULL) {
     if (strcmp(direntp->d_name,".") != 0 && strcmp(direntp->d_name,"..") != 0) {
       char *aux = (char *) malloc((strlen(principal) + strlen(direntp->d_name) + 3) * sizeof(char));
@@ -199,6 +197,7 @@ void manejadorLectura(){
 int main(int argc, char **argv){
   num = argv[1];
   numero = atoi(argv[1]);
+  perror("hijoooo\n");
   fprintf(stderr,"Estoy en el hijo %d!\n",numero);
   fflush(stderr);
   padre = getppid();
