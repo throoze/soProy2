@@ -346,28 +346,31 @@ int main (int argc, char **argv) {
   for (i = 0; i < nc; i++) {
     jobs[i]=fork();    
     if (jobs[i]==0){
-fprintf(stderr, "hijo creado**************0\n");
-fflush(stderr);
+      //execlp("ls","ls",NULL);
+      //perror(":");
+      fprintf(stderr, "hijo creado**************0\n");
+//fflush(stderr);
       /* Redireccion de la entrada al pipe */
-      close(pipeW[WRITE]);
-fprintf(stderr, "hijo creado**************0.2\n");
-fflush(stderr);
+//      close(pipeW[WRITE]);
+      fprintf(stderr, "hijo creado**************0.2\n");
+      //fflush(stderr);
       dup2(pipeW[READ],0);
-fprintf(stderr, "hijo creado**************0.3\n");
-fflush(stderr);
-      close(pipeW[READ]);
-fprintf(stderr, "hijo creado**************1\n");
-fflush(stderr);
+      //  fprintf(stderr, "hijo creado**************0.3\n");
+      //fflush(stderr);
+      //    close(pipeW[READ]);
+      //  fprintf(stderr, "hijo creado**************1\n");
+      //fflush(stderr);
       /* Redireccion de la salida al pipe */
       close(pipeR[READ]);
       dup2(pipeR[WRITE],1);
       close(pipeR[WRITE]);
-fprintf(stderr, "hijo creado**************\n");
-fflush(stderr);
+      fprintf(stderr, "hijo creado**************\n");
+      //fflush(stderr);
       char numProc[12];
       sprintf(numProc,"%d",i);
-			fprintf(stderr, "hijo creado**************\n");
-      execlp("./job","job",numProc,NULL);
+      fprintf(stderr, "hijo creado*************5616 %s *\n",numProc);
+      //execlp("./job","job",numProc,NULL);
+      perror(":");
     }
   }
 
@@ -410,7 +413,8 @@ fflush(stderr);
   fflush(stdout);
 
   /* Espero las respuestas de los hijos */
-  while (numBusy > 0 && !esVaciaPilaString(pendDirs)) {
+	printf("antes de leer...\n");
+  while (numBusy > 0 || !esVaciaPilaString(pendDirs)) {
     /* Leo la información de un hijo */
     printf("Leyendo respuestas...\n");
     fflush(stdout);
@@ -420,16 +424,18 @@ fflush(stderr);
     int numDirects;
     int tamBlks;
     int tamStr;
-    while (read(0,&numChild,sizeof(int) ==0));
-			printf("numero de hijo leido %d\n", numChild);
-    while (read(0,&numRegs,sizeof(int) ==0));
-			printf("numero de registros %d\n", numRegs);
-    while (read(0,&numDirects,sizeof(int) ==0));
-			printf("numero de directorios %d\n", numDirects);
-    while (read(0,&tamBlks,sizeof(int) ==0));
-			printf("tamano en bloques %d\n", tamBlks);
-    while (read(0,&tamStr,sizeof(int) ==0));
-			printf("tamano string %d\n", tamStr);
+    int x;
+    x=read(0,&numChild,sizeof(int));
+    printf("numero de hijo leido %d y x %d\n", numChild,x);
+    while (read(0,&numRegs,sizeof(int)) ==0);
+    
+    printf("numero de registros %d\n", numRegs);
+    while (read(0,&numDirects,sizeof(int)) ==0);
+    printf("numero de directorios %d\n", numDirects);
+    while (read(0,&tamBlks,sizeof(int)) ==0);
+    printf("tamano en bloques %d\n", tamBlks);
+    while (read(0,&tamStr,sizeof(int)) ==0);
+    printf("tamano string %d\n", tamStr);
     int *lengths = (int *) malloc(numDirects * sizeof(int));
     char * directories = (char *) malloc(tamStr * sizeof(char));
     printf("Soy el PAPA y leí del hijo numero %d\n",numChild);
