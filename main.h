@@ -84,29 +84,54 @@
 
 /* Variables globales: */
 unsigned long nc = 1; // Nivel de concurrencia
+
 pid_t *jobs;          // Contenedor de los pid's de los 
                       // procesos hijos.
+
 PilaString *pendDirs; // Pila que contiene los nombres de
                       // los directorios pendientes por
                       // revisar.
+
 ListaStr *ansDirs;    // Pila que contiene los nombres de
                       // Los directorios que se han explo-
                       // rado.
+
 ListaInt *ansBlocks;  // Contiene la cantidad de bloques
                       // asociados a los archivos conta-
                       // bilizados por la posición que o-
                       // cupan.
+
 int numRegFiles;      // Contador de archivos regulares.
+
 int numDirs;          // Contador de directorios explorados.
+
 int *busyJobs;        // Indicador de trabajos (procesos) 
                       // ocupados.
+
 char **dirAsig;       // Directorios asignados a cada hijo.x
+
 int  numBusy;         // Numero de trabajos ocupados.
+
 int  numLazy;         // Numero de trabajos desocupados.
+
 int pipeW[2];         // Contenedor del pipe que va a
                       // ESCRIBIR en los procesos hijos.
 
+int **pipesR;         // Contenedor de los pipes que van a
+                      // LEER de los procesos hijos.
 
+int numChild;         // Número del hijo leido.
+
+int numRegs;          // Número de archivos regulares encontrados.
+
+int numDirects;       // Número de directorios encontrados.
+
+int tamBlks;          // Tamaño en bloques de los archivos regulares
+                      // en el directorio leido.
+
+int tamStr;           // Número de bytes a leer a continuación.
+
+Ans * buffer;         // Estructura de buffer de lectura.
 
 /**
  * Procesa los argumentos entrados por linea de comandos.

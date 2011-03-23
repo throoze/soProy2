@@ -81,7 +81,7 @@ void manejadorLectura(){
   fprintf(stderr,"Soy el HIJO %d; leidos %d bytes\n",numero,bitsEnt);
   fflush(stderr);
   //kill(padre, SIGUSR2);
-  kill(padre,SIGCONT);
+  kill(padre,SIGUSR2);
   read(0, principal, bitsEnt);
   fprintf(stderr,"leido, dir: \"%s\"\n", principal);
   fflush(stderr);
@@ -161,27 +161,27 @@ void manejadorLectura(){
   register int i;
   register int j = 0;
   for (i = 0; i < sizeof(int); i++) {
-    answer[j] = ((char *)numero)[i];
+    answer[j] = (((char *)numero)[i]);
     j++;
   }
   for (i = 0; i < sizeof(int); i++) {
-    answer[j] = ((char *)numArchi)[i];
+    answer[j] = (((char *)numArchi)[i]);
     j++;
   }
   for (i = 0; i < sizeof(int); i++) {
-    answer[j] = ((char *)numDir)[i];
+    answer[j] = (((char *)numDir)[i]);
     j++;
   }
   for (i = 0; i < sizeof(int); i++) {
-    answer[j] = ((char *)sumTam)[i];
+    answer[j] = (((char *)sumTam)[i]);
     j++;
   }
   for (i = 0; i < sizeof(int); i++) {
-    answer[j] = ((char *)totalBytes)[i];
+    answer[j] = (((char *)totalBytes)[i]);
     j++;
   }
   for (i = 0; i < (numDir * sizeof(int)); i++) {
-    answer[j] = ((char *)(respuesta->lengths))[i];
+    answer[j] = (((char *)(respuesta->lengths))[i]);
     j++;
   }
   for (i = 0; i < (totalBytes * sizeof(char)); i++) {
@@ -197,20 +197,25 @@ void manejadorLectura(){
 int main(int argc, char **argv){
   num = argv[1];
   numero = atoi(argv[1]);
-  perror("hijoooo\n");
   fprintf(stderr,"Estoy en el hijo %d!\n",numero);
   fflush(stderr);
   padre = getppid();
   signal(SIGUSR2 ,manejadorSilencio);
   signal(SIGCONT,manejadorMuerte);
   signal(SIGUSR1 ,manejadorLectura);
-
+  
+  kill(padre,SIGUSR2);
+  fprintf(stderr,"Ya le avise a mi papa, el es: %d\n", padre);
+  fflush(stderr);
   while (TRUE){
     fprintf(stderr,"me pauso\n");
-    fflush(stderr);
+    fflush(stderr);    
     pause();
     fprintf(stderr,"esto pasa luego de q termina el HIJO = %d\n",numero);
     fflush(stderr);
   }
+
+  fprintf(stderr,"HIJO %d: Termine mi ejecucución!\n",numero);
+  fflush(stderr);
   return 0;
 }

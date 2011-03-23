@@ -81,6 +81,22 @@
 #endif
 
 #include "main.h"
+//boolean
+int hijoEscribe(){
+  buffer = (Ans *) malloc(sizeof(Ans));
+  register int i;
+  for ( i = 0; i < nc; i++) {
+    if (read(pipesR[i][READ],buffer,(5 * sizeof(int))) != 0) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+int hijoEscritor(){
+  return buffer->numChild;
+}
+
 
 void sigusr2Handler(){}
 
@@ -324,10 +340,12 @@ int main (int argc, char **argv) {
                               // ocupados.
   numBusy = 0;                // Numero de trabajos ocupados.
   numLazy = nc;               // Numero de trabajos desocupados.
-  int pipeR[2];               // Contenedor del pipes que va a
-                              // LEER de los procesos hijos.
   register int i;             // Contador para los ciclos.
-
+  
+  pipesR = (int **) malloc(nc * sizeof(int *));      // pipes de lectura
+  for (i = 0; i < nc; i++) {
+    pipesR[i] = (int *) malloc(2 * sizeof(int));
+  }
   dirAsig = (char **) malloc(nc * sizeof(char*)); // Indicador de trabajos (procesos) 
   busyJobs = (int *) malloc(nc * sizeof(int));    // Indicador de trabajos (procesos) 
   for (i = 0; i < nc; i++) {
@@ -336,53 +354,46 @@ int main (int argc, char **argv) {
   
 
   firstPass(startDir,startDirName,ansDirs,ansBlocks,&numRegFiles,&numDirs,&totalBlocks);
-
-  /* Crear los pipes para la comunicación entre padre e hijos */
-  pipe(pipeR);
-  pipe(pipeW);
-
-  /* Crear los procesos hijos */
-	fprintf(stderr, "voy a crear los hijos\n");
-  for (i = 0; i < nc; i++) {
-    jobs[i]=fork();    
-    if (jobs[i]==0){
-      //execlp("ls","ls",NULL);
-      //perror(":");
-      fprintf(stderr, "hijo creado**************0\n");
-//fflush(stderr);
-      /* Redireccion de la entrada al pipe */
-//      close(pipeW[WRITE]);
-      fprintf(stderr, "hijo creado**************0.2\n");
-      //fflush(stderr);
-      dup2(pipeW[READ],0);
-      //  fprintf(stderr, "hijo creado**************0.3\n");
-      //fflush(stderr);
-      //    close(pipeW[READ]);
-      //  fprintf(stderr, "hijo creado**************1\n");
-      //fflush(stderr);
-      /* Redireccion de la salida al pipe */
-      close(pipeR[READ]);
-      dup2(pipeR[WRITE],1);
-      close(pipeR[WRITE]);
-      fprintf(stderr, "hijo creado**************\n");
-      //fflush(stderr);
-      char numProc[12];
-      sprintf(numProc,"%d",i);
-      fprintf(stderr, "hijo creado*************5616 %s *\n",numProc);
-      //execlp("./job","job",numProc,NULL);
-      perror(":");
-    }
-  }
-
-  /* Redirección de la entrada estandar del padre al pipe */
-  close(pipeR[WRITE]);
-  dup2(pipeR[READ],0);
-  close(pipeR[READ]);
-
+  
   /* Instalo el manejador para SIGUSR1 y SIGUSR2 */
   signal(SIGUSR1, sigusr1Handler);
   signal(SIGUSR2, sigusr2Handler);
   signal(SIGCHLD, childHandler);
+  
+  /* Crear los pipes para la comunicación entre padre e hijos */
+  for (i = 0; i < nc; i++) {
+    pipe(pipesR[i]);
+  }
+  pipe(pipeW);
+
+  /* Crear los procesos hijos */
+  fprintf(stderr, "voy a crear los hijos\n");
+  for (i = 0; i < nc; i++) {
+    jobs[i]=fork();    
+    if (jobs[i]==0){
+      fprintf(stderr, "hijo creado**************0\n");
+      /* Redireccion de la entrada al pipe */
+      close(pipeW[WRITE]);
+      if (dup2(pipeW[READ],0) < 0) {
+        fprintf(stderr, "El dup2 no sirvió   =(\n");
+      } else {
+        fprintf(stderr, "El dup2 si sirvió   =)\n");
+      }
+      close(pipeW[READ]);
+      /* Redireccion de la salida al pipe */
+      close(pipesR[i][READ]);
+      dup2(pipesR[i][WRITE],1);
+      close(pipesR[i][WRITE]);
+      char numProc[12];
+      sprintf(numProc,"%d",i);
+      fprintf(stderr, "hijo creado*************5616 %s *\n",numProc);
+      execl("./job","job",numProc,NULL);
+    } else {
+      printf("PAPA: Ya me pause...\n");
+      pause();
+      printf("PAPA: Ya me despause...\n");
+    }
+  }
 
   /* Asigna las tareas: */
   i = 0;
@@ -413,73 +424,68 @@ int main (int argc, char **argv) {
   fflush(stdout);
 
   /* Espero las respuestas de los hijos */
-	printf("antes de leer...\n");
+  printf("antes de leer...\n");
   while (numBusy > 0 || !esVaciaPilaString(pendDirs)) {
-    /* Leo la información de un hijo */
-    printf("Leyendo respuestas...\n");
-    fflush(stdout);
+    if (hijoEscribe()) {
+      int tubo = hijoEscritor();
+      /* Leo la información de un hijo */
+      printf("Leyendo respuestas...\n");
+      fflush(stdout);
 
-    int numChild;
-    int numRegs;
-    int numDirects;
-    int tamBlks;
-    int tamStr;
-    int x;
-    x=read(0,&numChild,sizeof(int));
-    printf("numero de hijo leido %d y x %d\n", numChild,x);
-    while (read(0,&numRegs,sizeof(int)) ==0);
+      int x = 0;
     
-    printf("numero de registros %d\n", numRegs);
-    while (read(0,&numDirects,sizeof(int)) ==0);
-    printf("numero de directorios %d\n", numDirects);
-    while (read(0,&tamBlks,sizeof(int)) ==0);
-    printf("tamano en bloques %d\n", tamBlks);
-    while (read(0,&tamStr,sizeof(int)) ==0);
-    printf("tamano string %d\n", tamStr);
-    int *lengths = (int *) malloc(numDirects * sizeof(int));
-    char * directories = (char *) malloc(tamStr * sizeof(char));
-    printf("Soy el PAPA y leí del hijo numero %d\n",numChild);
-    fflush(stdout);
-    for (i = 0; i < numDirects; i++){
-      while (read(0,&lengths[i],numDirects) ==0);
-    }
-    read(0,directories,tamStr);
+      while (read(pipesR[tubo][READ],&numChild,sizeof(int)) == 0);
+      printf("numero de hijo leido %d y x %d\n", numChild,x);
+      while (read(pipesR[tubo][READ],&numRegs,sizeof(int)) ==0);
+    
+      printf("numero de registros %d\n", numRegs);
+      while (read(pipesR[tubo][READ],&numDirects,sizeof(int)) ==0);
+      printf("numero de directorios %d\n", numDirects);
+      while (read(pipesR[tubo][READ],&tamBlks,sizeof(int)) ==0);
+      printf("tamano en bloques %d\n", tamBlks);
+      while (read(pipesR[tubo][READ],&tamStr,sizeof(int)) ==0);
+      printf("tamano string %d\n", tamStr);
+      int *lengths = (int *) malloc(numDirects * sizeof(int));
+      char * directories = (char *) malloc(tamStr * sizeof(char));
+      printf("Soy el PAPA y leí del hijo numero %d\n",numChild);
+      fflush(stdout);
+      for (i = 0; i < numDirects; i++){
+        while (read(pipesR[tubo][READ],&lengths[i],numDirects) ==0);
+      }
+      read(pipesR[tubo][READ],directories,tamStr);
 
-    /* Proceso la información obtenida */
-    numRegFiles += numRegs;
-    numDirs += numDirects;    
-    addLS(ansDirs,dirAsig[numChild]);
-    add(ansBlocks,tamBlks);
+      /* Proceso la información obtenida */
+      numRegFiles += numRegs;
+      numDirs += numDirects;    
+      addLS(ansDirs,dirAsig[numChild]);
+      add(ansBlocks,tamBlks);
 
-    /* Proceso el string */
-    for (i = 0; i < numDirects-1; i++) {
+      /* Proceso el string */
+      for (i = 0; i < numDirects-1; i++) {
+        char actual[lengths[i]];
+        sscanf(directories, "%[^'!']",actual);
+        pushPilaString(pendDirs,actual);
+      }
       char actual[lengths[i]];
-      sscanf(directories, "%[^'!']",actual);
+      sscanf(directories,"%s",actual);
       pushPilaString(pendDirs,actual);
-    }
-    char actual[lengths[i]];
-    sscanf(directories,"%s",actual);
-    pushPilaString(pendDirs,actual);
     
-    /* Marco a este proceso como desocupado */
-    busyJobs[numChild] = FALSE;
-    numBusy--;
-    numLazy++;
+      /* Marco a este proceso como desocupado */
+      busyJobs[numChild] = FALSE;
+      numBusy--;
+      numLazy++;
 
     
-    /* Vuelvo a asignar trabajos */
-    asignarTrabajos();
+      /* Vuelvo a asignar trabajos */
+      asignarTrabajos();
+    }
   }
 
+  /* Terminados los trabajos, les digo a los hijos que mueran */
   for (i = 0; i < nc; i++) {
     kill(jobs[i],SIGALRM);
   }
 
-  
-  /* COSAS QUE FALTAN: */
-  ///////////////////////
-  /* -ORDENARLOS POR EL NOMBRE DEL DIRECTORIO */
-  /* -ESCRIBIR LA SALIDA */
 
   char **respuestaDirs = LSToArray(ansDirs);
   int *respuestaBlocks = liToArray(ansBlocks);
